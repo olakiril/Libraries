@@ -1,0 +1,30 @@
+tic;
+FileTif='M:/Two-Photon/2013-09-03/130903_002.tif';
+FileID = tifflib('open',FileTif,'r');
+rps = tifflib('getField',FileID,Tiff.TagID.RowsPerStrip);
+mImage= tifflib('getField',FileID,Tiff.TagID.ImageWidth);
+nImage= tifflib('getField',FileID,Tiff.TagID.ImageLength);
+FinalImage = zeros(nImage,mImage,150000,'uint16');
+go = 1;
+i = 0;
+toc
+tic
+while go
+    i=i+1;
+    try
+        tifflib('setDirectory',FileID,i-1);
+        % Go through each strip of data.
+        rps = min(rps,nImage);
+        for r = 1:rps:nImage
+            row_inds = r:min(nImage,r+rps-1);
+            stripNum = tifflib('computeStrip',FileID,r)-1;
+            FinalImage(row_inds,:,i) = tifflib('readEncodedStrip',FileID,stripNum);
+        end
+    catch
+        disp 'end'
+        go = 0;
+        FinalImage = FinalImage(:,:,1:i-1);
+    end
+end
+toc
+

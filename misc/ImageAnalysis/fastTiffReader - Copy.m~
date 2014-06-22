@@ -1,0 +1,85 @@
+FileTif='Q:/130903_002.tif';
+tic;InfoImage=imfinfo(FileTif);toc
+
+mImage=InfoImage(1).Width;
+nImage=InfoImage(1).Height;
+NumberImages=length(InfoImage);
+tic;FinalImage=ones(nImage,mImage,NumberImages,'uint16');toc
+FileID = tifflib('open',FileTif,'r');
+rps = tifflib('getField',FileID,Tiff.TagID.RowsPerStrip);
+%%
+tic;
+for i=1:NumberImages
+    tifflib('setDirectory',FileID,i-1);
+    % Go through each strip of data.
+    rps = min(rps,nImage);
+    for r = 1:rps:nImage
+        row_inds = r:min(nImage,r+rps-1);
+        stripNum = tifflib('computeStrip',FileID,r)-1;
+        FinalImage(row_inds,:,i) = tifflib('readEncodedStrip',FileID,stripNum);
+    end
+end
+toc
+
+%%
+FileTif='Q:/130903_002.tif';
+tic;InfoImage=imfinfo(FileTif);toc
+
+mImage=InfoImage(1).Width;
+nImage=InfoImage(1).Height;
+NumberImages=length(InfoImage);
+tic;FinalImage=ones(nImage,mImage,NumberImages,'uint16');toc
+FileID = tifflib('open',FileTif,'r');
+rps = tifflib('getField',FileID,Tiff.TagID.RowsPerStrip);
+%%
+tic;
+t = Tiff('M:/Two-Photon/2013-09-03/130903_002.tif', 'r');
+im = ones( t.getTag('ImageLength'), t.getTag('ImageWidth'),50000,'uint16');
+t.setDirectory(1)
+for i=1:size(im,3);
+    try
+        if i~=1; t.nextDirectory();end
+        im(:,:,i) = t.read();
+    catch
+        im = im(:,:,1:i-1);
+        break
+    end
+end
+toc
+%%
+tic;
+copyfile('M:/Two-Photon/2013-09-03/130903_002.tif','Q:/test.tif')
+toc
+%%
+
+        function [img, discardedFinalLine] = read(self, iChan, frameIdx, removeFlyback)
+            if nargin<3 || isempty(frameIdx)
+                frameIdx = 1:self.nFrames;
+            end
+            removeFlyback = nargin<4 || removeFlyback;
+            assert(self.hasChannel(iChan), 'Channel %d was not recorded', iChan)
+            
+            % change iChan to the channel number in the gif file.
+            for i=1:iChan
+                iChan = iChan - 1 + self.hasChannel(i);
+            end
+            
+            img = zeros(self.height, self.width, length(frameIdx), 'single');
+            for iFrame=1:length(frameIdx(:))
+                frameNum = (frameIdx(iFrame)-1)*self.nChans + iChan;
+                [fileNum, frameNum] = self.getFileNum(frameNum);
+                img(:,:,iFrame) = imread(self.filepaths{fileNum}, ...
+                    'Index', frameNum, 'Info', self.info{fileNum});
+            end
+            
+            % determine if the last line is the flyback line and discard it if so
+            discardedFinalLine = false;
+            if removeFlyback && ~self.hdr.acq.slowDimDiscardFlybackLine
+                if self.hdr.acq.slowDimFlybackFinalLine
+                    img = img(1:end-1,:,:);
+                    discardedFinalLine = true;
+                else
+                    img = img(2:end,:,:);
+                end
+            end
+        end

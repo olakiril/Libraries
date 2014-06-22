@@ -1,0 +1,97 @@
+function [outimA outimP] = opticalMap(fn,tf,varargin)
+
+% function opticalMap(fn,tf,varargin)
+%
+% Analyzes the intrinsic imaging data aquired with Intrinsic Imager
+%
+% MF 2012-06
+
+params.fft = 0; % if positive, it also specifies the radius in pixels around the center that the amplitude spectrum is computed on.
+params.sigma = 3; %sigma of the gaussian filter
+params.gauss = 50; %size of gaussian window in pixels
+params.vessels = 'vessels.h5'; % vessels image as backround
+
+params = getParams(params,varargin);
+
+if nargin<2
+    tf = 0.1:.01:.3615; % plot multiple temporal frequencies
+end
+
+%%
+[data Fs] = getOpticalData(fn);
+imsize = size(data,2);
+data = (bsxfun(@minus,data(:,:),mean(data(:,:)))); % subtract mean for the fft
+
+T = 1/Fs; % frame length
+L = size(data,1); % Length of signal
+t = (0:L-1)*T; % time series
+
+%%
+figure
+for itf = 1:length(tf)
+    subplot(ceil(sqrt(length(tf))),ceil(sqrt(length(tf))),itf)
+    R = exp(2*pi*1i*t*tf(itf))*data;
+    imP = squeeze(reshape((angle(R)),imsize,imsize));
+    imA = squeeze(reshape((abs(R)),imsize,imsize));
+    imA(imA>prctile(imA(:),99)) = prctile(imA(:),99);
+    
+    % correct angle range
+    [h1 h2] = hist(reshape(imP(imP~=0),[],1),100); % histgram of data without the 0 peak
+    mxv = h2(find(h1 == max(h1),1,'first')); % find the common angle
+    mnv = min([3.14 - mxv abs(-3.14 - mxv)]); %find the minimum distance from the edges
+    mxthr = mxv+mnv; % maximum threshold
+    mnthr = mxv - (3.14 - mnv); % minimum threshold
+    imP(imP>mxthr) = mxthr;
+    imP(imP<mnthr) = mnthr;
+    
+    
+    direc = fileparts(fn);
+    if isempty(direc)
+        vname = dir(params.vessels);
+    else
+        vname = dir([direc '/' params.vessels]);
+    end
+    
+    if ~isempty(params.vessels) && ~isempty(vname)
+        vessels = getOpticalData([direc '/' params.vessels]);
+        h = normalize(imP);
+        s = normalize(imA);
+        v = normalize(squeeze(mean(vessels)));
+    else
+        h = normalize(imP);
+        s = ones(size(imP));
+        v = normalize(imA);
+    end
+    Im = (hsv2rgb(cat(3,h,cat(3,s,v))));
+    Im = imgaussian(Im,params.sigma,params.gauss);
+    image(Im)
+    title([num2str(tf(itf)) ' cyc/sec'])
+end
+
+% plot the amplitude spectum
+if params.fft
+    figure
+    NFFT = 2^nextpow2(L); % Next power of 2 from length of y
+    
+    indx = zeros(imsize);
+    indx(imsize/2 - params.fft:imsize/2 + params.fft,...
+        imsize/2 - params.fft:imsize/2 + params.fft) = 1;
+    Y = fft(data(:,logical(indx(:))),NFFT)/L;
+    f = Fs/2*linspace(0,1,NFFT/2+1);
+    
+    % Plot single-sided amplitude spectrum.
+    plot(f,mean(2*abs(Y(1:NFFT/2+1,:)),2))
+    title('Single-Sided Amplitude Spectrum of y(t)')
+    xlabel('Frequency (Hz)')
+    ylabel('|Y(f)|')
+end
+
+if nargout == 1
+    outimA = imA;
+end
+
+if nargout == 2
+    outimA = imA;
+    outimP = imP;
+end
+
