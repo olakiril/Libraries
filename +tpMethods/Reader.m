@@ -70,11 +70,11 @@ classdef Reader < handle
         end
         
         
-        function [img, discardedFinalLine] = read(self, iChan, frameIdx, removeFlyback)
+        function [img, discardedFinalLine] = read(self, iChan, frameInd, removeFlyback)
             %%%%% HERE I AM ONLY HANDLING CASES OF 1 IMAGE PER SLICE %%%%%%
             if self.nSlices>1
                 frameIdx = 1:self.nSlices;
-            elseif nargin<3 || isempty(frameIdx) 
+            else% if nargin<3 || isempty(frameInd) 
                 frmx = round(self.hdr.acq.numberOfFrames/self.hdr.acq.numAvgFramesSave);
                 frameIdx = 1:frmx;
             end
@@ -129,6 +129,9 @@ classdef Reader < handle
                     img = img(2:end,:,:,:);
                 end
             end
+            
+            % get asked frames
+            img = img(:,:,frameInd,:);
         end
         
         
