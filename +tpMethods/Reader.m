@@ -130,8 +130,10 @@ classdef Reader < handle
                 end
             end
             
+            if nargin>2
             % get asked frames
             img = img(:,:,frameInd,:);
+            end
         end
         
         
