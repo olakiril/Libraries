@@ -33,7 +33,7 @@ end
 if nCols == 1 || nRows ==1
     loc = 1:length(values);
 else
-    loc = bsxfun(@plus,repmat(linspace(0.7,1.3,nCols),nRows,1),(1:nRows)'-1);
+    loc = bsxfun(@plus,repmat(linspace(0.8,1.2,nCols),nRows,1),(1:nRows)'-1);
 end
 
 %%%%%% edit for matlab 2014b

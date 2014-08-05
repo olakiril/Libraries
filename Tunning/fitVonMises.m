@@ -1,4 +1,4 @@
-function b = fitVonMises(y,x)
+function [b, res] = fitVonMises(y,x)
 
 
 
@@ -13,7 +13,7 @@ function b = fitVonMises(y,x)
 % x0 = [0.5 x(ind(1)) maxAmp-minAmp minAmp maxAmp-minAmp];
 x0 = [0.5 x(ind(1)) maxAmp 0 maxAmp];
 options = optimset('MaxFunEvals', 10^25,'Display','off'); % number of iterations
-b = lsqcurvefit(@vonMises, x0, x, y, [0 -pi 0 0 0], [],options);
+[b,~,res] = lsqcurvefit(@vonMises, x0, x, y, [0 -pi 0 0 0], [],options);
 
 
 
