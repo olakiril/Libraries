@@ -28,7 +28,7 @@ params.constrict = []; % take a % of the data.
 params.heightgain = 5;
 params.figure = [];
 params.test = 'ttest';
-params.reduce = 0.7;
+params.reduce = 1.2;
 params.ticks = [];
 
 for i = 1:2:length(varargin)
@@ -38,7 +38,7 @@ end
 % non variable size params
 left_margin = 0.15;      % normalized left margin for scatter plot
 bottom_margin = 0.15;    % normalized bottom margin for scatter plot
-expansion = 0.5;         % normalized width and height of scatter plot
+expansion = 0.5*(params.reduce^(1/3));         % normalized width and height of scatter plot
 
 roundAll = @(x) round(x*10^abs(floor(log10(x))))/10^abs(floor(log10(x)));
 
@@ -84,7 +84,7 @@ plot(A,B,params.markertype,'markersize',params.markersize,...
     'MarkerEdgeColor',params.MarkerEdgeColor,'MarkerFaceColor',params.MarkerFaceColor);
 
 mn = min([A; B]); mx = max([A; B]);
-set(gca,'Xlim',[mn*params.reduce mx/params.reduce],'YLim',[mn*params.reduce mx/params.reduce]);
+set(gca,'Xlim',[mn*params.reduce mx*params.reduce],'YLim',[mn*params.reduce mx*params.reduce]);
 if params.ticks
     set(gca,'xtick',params.ticks,...
         'ytick',params.ticks);
@@ -94,7 +94,7 @@ set(h,'Position',[pos(1),pos(2),...
     (pos(3) + pos(4))/2, (pos(3) + pos(4))/2],'box','off',...
     'FontSize',params.fontsize); % equalize axis
 hold on
-plot([mn*params.reduce mx/((1+params.reduce)/2)],[mn*params.reduce mx/((1+params.reduce)/2)],...
+plot([mn*params.reduce mx*params.reduce],[mn*params.reduce mx*params.reduce],...
     params.diagtype,'Color',params.midlinecolor,'LineWidth',params.midlinewidth);
 
 % histogram
@@ -108,31 +108,39 @@ set(gca,'XLim',[-max(abs(A - B)) max(abs(A - B))],...
     'YLim',[lim(1) lim(2)*(difrange)],'YColor',[1 1 1]);% equalize axis & reduce y axis
 camorbit(45,0,'data',[0 0 1]);
 
-% get proper position
-set(h(1),'position',[left_margin bottom_margin expansion expansion]/((1+params.reduce)/2))
+%% get proper position
+set(h(1),'position',[left_margin bottom_margin expansion expansion])
 pos = get(h(1),'position');
 w2 = 4 * max(abs(A - B)) * pos(3) / ((mx - mn) * 2);
-set(h(2),'Position',[pos(1) + pos(3)*(1+params.reduce)/2 - w2/4,...
-    pos(2) + pos(4)*(1+params.reduce)/2 - w2/4, w2*params.reduce, w2*params.reduce],...
+set(h(2),'Position',[pos(1) + pos(3) - w2/4,...
+    pos(2) + pos(4) - w2/4, w2/params.reduce, w2/params.reduce],...
     'YTick',round(max(cnt)/10)*10,'YTickLabel',[],'box','off','YAxisLocation','right',...
-    'xtick',[],'tickdir','out','xcolor',[1 1 1],'tickdir','in')
+    'xtick',[],'ytick',[],'tickdir','out','xcolor',[1 1 1],'tickdir','in')
+
+%% plot extra stuff on histogram
 h(3) = findobj(gca,'Type','patch');
 set(h(3),'FaceColor',params.histcolor,'EdgeColor',params.histedgecolor)
 hold on;
 plot([0 0],get(h(2),'YLim'),params.diagtype,'Color',params.midlinecolor,'LineWidth',params.midlinewidth) % midline
 plot([mean(A - B) mean(A - B)],[0 max(cnt) * 1.2],params.meantype,'LineWidth',params.midlinewidth,...
     'color',params.difcolor) %diff
-text(max((A - B))*1.05,max(cnt), num2str(max(cnt)),...
+axis off
+count = ceil(max(cnt)/2);
+offset = max(cnt)/4;
+textpos = max(A - B);
+text(textpos,offset+count/2, num2str(count),...
     'FontSize',params.fontsize,'rotation',45,...
     'HorizontalAlignment','center','VerticalAlignment','top')
+barpos = max(A - B)-0.01*(max(A - B)-min(A - B));
+plot([barpos barpos],[offset offset+count],'color',[0 0 0])
 
-% mask the extra axis
+%% mask the extra axis
 plot([0 0],[max(cnt)*1.2 lim(2)*difrange],'Color',[1 1 1],'linewidth',4);
-plot([max((A - B))*1.03 max((A - B))*1.03],[0 max(cnt)*1.2 ],...
-    'color',[0 0 0],'linewidth',1);
-plot([max((A - B))*1.03 max((A - B))*1.07],[max(cnt) max(cnt)],...
-    'color',[0 0 0],'linewidth',1);
-plot([min((A - B)) max((A - B))*1.03],[0 0],'-k')
+% plot([max((A - B))*1.03 max((A - B))*1.03],[0 max(cnt)*1.2 ],...
+%     'color',[0 0 0],'linewidth',1);
+% plot([max((A - B))*1.03 max((A - B))*1.07],[max(cnt) max(cnt)],...
+%     'color',[0 0 0],'linewidth',1);
+% plot([min((A - B)) max((A - B))*1.03],[0 0],'-k')
 
 % X axes labels
 set(gcf,'CurrentAxes',h(1))

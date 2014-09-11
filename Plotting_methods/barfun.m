@@ -17,6 +17,7 @@ params.sig = 1;
 params.bar = 1;
 params.error = 'sde';
 params.colors = [];
+params.barwidth = 0.7;
 
 params = getParams(params,varargin);
 
@@ -39,7 +40,7 @@ end
 %%%%%% edit for matlab 2014b
 colors = parula(nCols);
 for i = 1:nCols
-    handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',0.7/nCols,...
+    handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',params.barwidth/nCols,...
         'faceColor',colors(i,:),'edgeColor',[1,1,1]); % standard implementation of bar fn
     hold on
 end
@@ -59,11 +60,11 @@ if nRows > 1
         %         loc(:,col) = mean(get(get(handles.bar(col),'children'),'xdata'),1);
         % Use the mean x values to call the standard errorbar fn; the
         % errorbars will now be centred on each bar:
-        errorbar(loc(:,col),values(:,col),errors(:,col), '.k')
+        errorbar(loc(:,col),values(:,col),errors(:,col), '.','color',[0.3 0.3 0.3])
     end
 else
     %     loc = mean(get(get(handles.bar,'children'),'xdata'),1);
-    errorbar(loc,values,errors,'.k')
+    errorbar(loc,values,errors,'.','color',[0.3 0.3 0.3])
 end
 
 mx = max((values(:)) + errors(:));

@@ -12,8 +12,8 @@ global gain
 global params
 
 params.testingmode = [];
-params.xstep = 5000;
-params.step = 50;
+params.xstep = 2000;
+params.step = 5;
 params.ylim = [0 3];
 params.marker = '-';
 params = getParams(params,varargin);
@@ -24,7 +24,7 @@ xstep = params.xstep;
 yl = params.ylim;
 data1 = X;
 data2 = Y;
-dx = 0;
+dx = data1(1)-data2(1);
 dy = 0;
 go = false;
 gain = 0;
@@ -83,19 +83,23 @@ elseif strcmp(event.Key,'equal') || strcmp(event.Key,'equal')
 elseif strcmp(event.Key,'hyphen') || strcmp(event.Key,'hyphen')
     dx = dx-step;
 elseif strcmp(event.Key,'rightbracket')
-    dx = dx+step*100;
-    xl = xl+step*100;
+    dx = dx+step*500;
+    xl = xl+step*500;
 elseif strcmp(event.Key,'leftbracket')
-    dx = dx-step*100;
-      xl = xl-step*100;
+    dx = dx-step*500;
+      xl = xl-step*500;
 elseif strcmp(event.Key,'0') 
-    gain = gain+1;
+    gain = gain+0.0005;
 elseif strcmp(event.Key,'9') 
-    gain = gain-1;
+    gain = gain-0.0005;
+elseif strcmp(event.Key,'semicolon') 
+    gain = gain-0.0001;
+elseif strcmp(event.Key,'quote') 
+    gain = gain+0.0001;
 elseif strcmp(event.Key,'p')
-    gain = gain+10;
+    dx = dx+step*.2;
 elseif strcmp(event.Key,'o')
-    gain = gain-10;
+    dx = dx-step*.2;
 elseif strcmp(event.Key,'return')
     go = true;
 elseif strcmp(event.Key,'pageup') || strcmp(event.Key,'rightbracket')
@@ -105,7 +109,7 @@ elseif strcmp(event.Key,'pagedown') || strcmp(event.Key,'leftbracket')
 elseif strcmp(event.Key,'home')
     xl = [data1(1)-diff(xl)/2 data1(1)+diff(xl)/2];
 elseif strcmp(event.Key,'end')
-    xl = [data1(end,1)-diff(xl)/2 data1(end,1)+diff(xl)/2];
+    xl = [data2(end)+dx-(diff(xl)/2) data2(end)+dx+(diff(xl)/2)];
 end
 
 if go

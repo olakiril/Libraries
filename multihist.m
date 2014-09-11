@@ -10,7 +10,7 @@ if ~iscell(data);data = {data};end
 
 params.linestyle = '-';
 params.linewidth = 2;
-params.colors = hsv(length(data));
+params.colors = parula(length(data));
 params.bin = round(mean(cellfun(@length,data))/50);
 params.normalize = 1;
 params.eq = 1;
@@ -47,6 +47,7 @@ for i = 1:length(data)
     end
     
     plot(indx, n1,params.linestyle,'Color',params.colors(i,:),'linewidth',params.linewidth);
+    set(gca,'box','off')
     hold on;
 end
 

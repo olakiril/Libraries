@@ -7,11 +7,11 @@ end
 p = (1-p)/2;
 u = zeros(size(s,2));
 l = u;
-isOpen = matlabpool('size') ;
-if isOpen && ~singlethread
-    R = RandStream.create('mrg32k3a','NumStreams',isOpen,'Seed',0);
+cp = gcp('nocreate');
+if ~isempty(cp) && ~singlethread
+    R = RandStream.create('mrg32k3a','NumStreams',cp.NumWorkers,'Seed',0);
     RandStream.setGlobalStream(R)
-    options = eval(['statset(''UseParallel'',''always'',''Streams'',{R ' repmat(',R',1,isOpen-1) '})']);
+    options = eval(['statset(''UseParallel'',''always'',''Streams'',{R ' repmat(',R',1,cp.NumWorkers-1) '})']);
 else
     R = RandStream.create('mrg32k3a','Seed',0);
     RandStream.setGlobalStream(R)

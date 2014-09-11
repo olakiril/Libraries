@@ -1,4 +1,4 @@
-function [traces, t, coordinates, traces2] = loadAODTraces(fn,fps)
+function [traces, t, coordinates, traces2,Fs] = loadAODTraces(fn,fps)
 
 mode = aodReader(fn,'Functional');
 assert(~isempty(mode), 'Cannot find mode information, invalid AOD scan file');
@@ -7,8 +7,9 @@ if nargout>2
     coordinates = mode.coordinates;
 end
 
+Fs = mode.Fs;
 traces = mode(:,:,1);
-dt = 1/mode.Fs;
+dt = 1/Fs;
 t = (1:size(traces,1)) * dt ;
 
 if nargout >3

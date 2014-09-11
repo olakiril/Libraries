@@ -6,7 +6,7 @@ function hout = errorPlot(times,traces,varargin)
 %
 % JC 2008-07-16
 
-params.method = 'std';
+params.method = 'sem';
 params.style = 'k';
 params.barFunction = 'patch';
 params.errorColor = [0 0 0];

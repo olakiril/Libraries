@@ -71,13 +71,19 @@ classdef Reader < handle
         
         
         function [img, discardedFinalLine] = read(self, iChan, frameInd, removeFlyback)
-            %%%%% HERE I AM ONLY HANDLING CASES OF 1 IMAGE PER SLICE %%%%%%
-            if self.nSlices>1
-                frameIdx = 1:self.nSlices;
-            else% if nargin<3 || isempty(frameInd) 
-                frmx = round(self.hdr.acq.numberOfFrames/self.hdr.acq.numAvgFramesSave);
-                frameIdx = 1:frmx;
-            end
+                        %%%%% HERE I AM ONLY HANDLING CASES OF 1 IMAGE PER SLICE %%%%%%
+            %             if self.nSlices>1
+            %                 frameIdx = 1:self.nSlices;
+            %             else% if nargin<3 || isempty(frameInd)
+            %                 frmx = round(self.hdr.acq.numberOfFrames/self.hdr.acq.numAvgFramesSave);
+            %                 frameIdx = 1:frmx;
+            %             end
+            %%%% 2014-09-11 self.nSlices is 1 but there are frames so I am handling
+            %%%% this case and not the nSlices
+            frmx = round(self.hdr.acq.numberOfFrames/self.hdr.acq.numAvgFramesSave);
+            frameIdx = 1:frmx;
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
             removeFlyback = nargin<4 || removeFlyback;
             frameNum = (frameIdx(frameIdx)-1)*self.nChans + max(iChan);
             
@@ -130,7 +136,7 @@ classdef Reader < handle
                 end
             end
             
-            if nargin>2
+            if nargin>2 && ~isempty(frameInd)
             % get asked frames
             img = img(:,:,frameInd,:);
             end
