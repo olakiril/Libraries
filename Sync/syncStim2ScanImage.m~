@@ -30,10 +30,10 @@ idx = true(length(stimfiles),1);
 for iStim = 1:length(stimfiles)
     
     try
-    % Load the stim file
+    Load the stim file
     stimData = load(getLocalPath(stimfiles{iStim}));
     
-    % get the swapTimes for every trial
+    get the swapTimes for every trial
     swaps = vertcat(stimData.stim.params.trials.swapTimes)*1000; % ms
     catch
         idx(iStim) = false;

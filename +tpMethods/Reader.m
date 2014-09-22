@@ -30,7 +30,7 @@ classdef Reader < handle
             else
                 i = 0;
                 while true
-                i = i +1;
+                    i = i +1;
                     f = sprintf('%s_%03u.tif', filepath, i);
                     if ismember(f,self.filepaths)
                         break
@@ -71,7 +71,7 @@ classdef Reader < handle
         
         
         function [img, discardedFinalLine] = read(self, iChan, frameInd, removeFlyback)
-                        %%%%% HERE I AM ONLY HANDLING CASES OF 1 IMAGE PER SLICE %%%%%%
+            %%%%% HERE I AM ONLY HANDLING CASES OF 1 IMAGE PER SLICE %%%%%%
             %             if self.nSlices>1
             %                 frameIdx = 1:self.nSlices;
             %             else% if nargin<3 || isempty(frameInd)
@@ -80,8 +80,12 @@ classdef Reader < handle
             %             end
             %%%% 2014-09-11 self.nSlices is 1 but there are frames so I am handling
             %%%% this case and not the nSlices
-            frmx = round(self.hdr.acq.numberOfFrames/self.hdr.acq.numAvgFramesSave);
-            frameIdx = 1:frmx;
+            if self.nSlices>1
+                frameIdx = 1:self.nSlices;
+            else
+                frmx = round(self.hdr.acq.numberOfFrames/self.hdr.acq.numAvgFramesSave);
+                frameIdx = 1:frmx;
+            end
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             removeFlyback = nargin<4 || removeFlyback;
@@ -97,11 +101,18 @@ classdef Reader < handle
                 t = Tiff(self.filepaths{ifilepath},'r');
                 t.setDirectory(1)
                 for i=1:frameNum(end)+self.nChans-iChan;
-
+                    
+                    % correct for tiffreader bug when movies are too long
+                    if ~mod(i,50000)
+                        t.close();
+                        t = Tiff(self.filepaths{ifilepath},'r');
+                        t.setDirectory(i-1)
+                    end
+                    
                     try
                         if i~=1; t.nextDirectory();end
                         frames(:,:,iframe) = t.read();
-                                            iframe = iframe+1;
+                        iframe = iframe+1;
                     catch
                         break
                     end
@@ -113,7 +124,7 @@ classdef Reader < handle
             % split channels
             img = ones(size(frames,1),size(frames,2),size(frames,3)/self.nChans,length(iChan),'uint16');
             for iCn = 1:length(iChan);
-                chan = iChan(iCn); 
+                chan = iChan(iCn);
                 assert(self.hasChannel(chan), 'Channel %d was not recorded', chan)
                 
                 % change iChan to the channel number in the gif file.
@@ -137,8 +148,8 @@ classdef Reader < handle
             end
             
             if nargin>2 && ~isempty(frameInd)
-            % get asked frames
-            img = img(:,:,frameInd,:);
+                % get asked frames
+                img = img(:,:,frameInd,:);
             end
         end
         
