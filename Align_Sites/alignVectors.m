@@ -33,7 +33,7 @@ gain = 0;
 h = figure('NumberTitle','off',...
     'Name','align Images',...
     'KeyPressFcn',@dispkeyevent);
-set(h,'position',[323         378        1357         420])
+set(h,'position',[320        1036        1310         468])
 clf
 hold on;
 plot(data1(:,1),data1(:,2),params.marker);
@@ -92,13 +92,13 @@ elseif strcmp(event.Key,'0')
     gain = gain+0.0005;
 elseif strcmp(event.Key,'9') 
     gain = gain-0.0005;
-elseif strcmp(event.Key,'semicolon') 
+elseif strcmp(event.Key,'o') 
     gain = gain-0.0001;
-elseif strcmp(event.Key,'quote') 
+elseif strcmp(event.Key,'p') 
     gain = gain+0.0001;
-elseif strcmp(event.Key,'p')
+elseif strcmp(event.Key,'quote')
     dx = dx+step*.2;
-elseif strcmp(event.Key,'o')
+elseif strcmp(event.Key,'semicolon')
     dx = dx-step*.2;
 elseif strcmp(event.Key,'return')
     go = true;

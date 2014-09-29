@@ -3,6 +3,8 @@ function [par, sse] = fitGauss(z,varargin)
 params.gausswin = 35; % in visual degrees
 params.deg2dot = 0.18;
 
+params = getParams(params,varargin);
+
 % apply smoothing
 w = window(@gausswin,round(params.gausswin*params.deg2dot));
 w = w * w';

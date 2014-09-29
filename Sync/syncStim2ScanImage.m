@@ -8,7 +8,7 @@ function [stimfiles, tpTS] = syncStim2ScanImage(tpr,varargin)
 % MF 2010-11-22
 
 params.testingmode = 0;
-params.manual = 0;
+params.manual = 1;
 params =  getParams(params,varargin);
 
 % load the tpfile related data
@@ -61,10 +61,15 @@ for iStim = 1:length(stimfiles)
         % correct the times
         timeCorrector =  flips(1) + delay*(scor(maxI)) - swaps(1);
     else
-        delay = alignVectors([flipTimes ones(length(flipTimes),1)],swaps +(tpTS(1) - swaps(1)),'marker','.');
-        
+%         delay = alignVectors([flipTimes ones(length(flipTimes),1)],swaps +(tpTS(1) - swaps(1)),'marker','.');
+%         
+%         % correct the times
+%         timeCorrector =  tpTS(1) + delay - swaps(1);
+%         
+         [delay, gain] = alignVectors([flipTimes ones(length(flipTimes),1)],swaps +(tpTS(1) - swaps(1)),'marker','.');
         % correct the times
-        timeCorrector =  tpTS(1) + delay - swaps(1);
+        gainfix = @(x,gn)  (x-x(1))*(1 + gn/100) + x(1);
+        timeCorrector = @(x) gainfix(x + delay,gain) + tpTS(1) - swaps(1);
 
     end
 
@@ -73,13 +78,13 @@ for iStim = 1:length(stimfiles)
         disp('writing synced STIMtimestamps into file')
         for iTrial = 1:length(stimData.stim.events)
             oldTimes = stimData.stim.events(iTrial).times * 1000; %ms
-            stimData.stim.events(iTrial).syncedTimes = oldTimes + timeCorrector;
+            stimData.stim.events(iTrial).syncedTimes = timeCorrector(oldTimes);
         end
         stimData.stim.synchronized = 1;
         stim = stimData.stim; %#ok<NASGU>
         save(getLocalPath(stimfiles{iStim}),'stim')
     end
-    swapsTest{iStim} = swaps + timeCorrector;  %#ok<AGROW>
+    swapsTest{iStim} = timeCorrector(swaps);  %#ok<AGROW>
 end
 stimfiles = stimfiles(idx);
 
