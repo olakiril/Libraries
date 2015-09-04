@@ -26,7 +26,10 @@ sEnd = num2str(tstamps(end));
 
 stimFilename = cell(length(stimFiles),1);
 for iFile=1:length(stimFiles)
-    stimFilename{iFile} = [params.stimPath stimFiles{iFile} '/' expType{iFile} '.mat'];
+    if strcmp(expType{iFile},'MouseMultiDim');name = 'MultDimExperiment';
+    elseif strcmp(expType{iFile},'NatImExperimentMouse');name = 'NatImExperiment';
+    else name = expType{iFile}; end
+    stimFilename{iFile} = [params.stimPath stimFiles{iFile} '/' name '.mat'];
 end    
 
 if ~params.supressOutput

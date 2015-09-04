@@ -30,7 +30,7 @@ keysTP = fetch(Scans(key,'aim = "vesselMap" and scan_prog > "Imager"'));
 
 if isempty(keysTP);display('No 2P structure map found! Aborting...');return;end
 
-scpr = fetch1(Scans(keysTP),'scan_prog');
+scpr = fetch1(Scans(keysTP(end)),'scan_prog');
 [lens, mag] = fetch1(Scans(keysTP(end)),'lens','mag');
 tp = tpReader(Scans(keysTP(end)));
 
@@ -59,6 +59,7 @@ imS(imS>prctile(imS(:),99)) = prctile(imS(:),99);
 
 
 if ~isempty(keys)
+    keys = keys(end);
     [imP, imA, vessels] = plot(OptImageBar(keys),'exp',params.exp);
     
     % normalize and filter phase and amplitude map

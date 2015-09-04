@@ -1,4 +1,4 @@
-function savefigures(type,nofig)
+function savefigures(type,figH,nofig)
 
 % function savefigures
 %
@@ -6,15 +6,21 @@ function savefigures(type,nofig)
 %
 % MF 2011-08-23
 
-if ~nargin
+if isa(type,'matlab.ui.Figure')
+    figH = type;
+end
+
+if nargin<2 && ~isa(type,'matlab.ui.Figure')
+    figH = findobj('type','figure');
+end
+
+if ~nargin || isa(type,'matlab.ui.Figure')
     type = '-dpng';
 else
     if ~isnumeric(type)
         nofig = 1;
     end
 end
-
-figH = findobj('type','figure');
 
 for ifig = 1:length(figH)
     

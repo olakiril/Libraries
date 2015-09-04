@@ -18,34 +18,34 @@ params.nFrames = length(pd)/tpr.height;
 pdSR = tpr.lps;
 
 % get the stim files
-[stimfiles, tpTS] = findStimFilesScanImage(tpr,params); 
+[stimfiles, tpTS] = findStimFilesScanImage(tpr,params);
 pdSpF = mean(diff(tpTS))/(1000/pdSR);
 
 % detect flip times
 detflips = detectFlipsM(pd(:,1),pdSR,30);
 flipTimes = interp1(tpTS, 1+(detflips/pdSpF),'linear','extrap'); % ms
 flips = flipTimes;
-
+alignParams.marker = '.';
 idx = true(length(stimfiles),1);
 for iStim = 1:length(stimfiles)
     
     try
-    % Load the stim file
-    stimData = load(getLocalPath(stimfiles{iStim}));
-    
-    % get the swapTimes for every trial
-    swaps = vertcat(stimData.stim.params.trials.swapTimes)*1000; % ms
+        % Load the stim file
+        stimData = load(getLocalPath(stimfiles{iStim}));
+        
+        % get the swapTimes for every trial
+        swaps = vertcat(stimData.stim.params.trials.swapTimes)*1000; % ms
     catch
         idx(iStim) = false;
         continue
     end
-
+    
     if ~params.manual
-
+        
         % build stim vectors
         [vswaps, mdflips] = buildStimVector(swaps);
         vflips = buildStimVector(flips,mdflips);
-
+        
         % organize..
         trace{1} = vswaps;
         trace{2} = vflips;
@@ -61,18 +61,19 @@ for iStim = 1:length(stimfiles)
         % correct the times
         timeCorrector =  flips(1) + delay*(scor(maxI)) - swaps(1);
     else
-%         delay = alignVectors([flipTimes ones(length(flipTimes),1)],swaps +(tpTS(1) - swaps(1)),'marker','.');
-%         
-%         % correct the times
-%         timeCorrector =  tpTS(1) + delay - swaps(1);
-%         
-         [delay, gain] = alignVectors([flipTimes ones(length(flipTimes),1)],swaps +(tpTS(1) - swaps(1)),'marker','.');
+        %         delay = alignVectors([flipTimes ones(length(flipTimes),1)],swaps +(tpTS(1) - swaps(1)),'marker','.');
+        %
+        %         % correct the times
+        %         timeCorrector =  tpTS(1) + delay - swaps(1);
+        %
+        [delay, gain] = alignVectors([flipTimes ones(length(flipTimes),1)],...
+            swaps +(tpTS(1) - swaps(1)),alignParams);
         % correct the times
         gainfix = @(x,gn)  (x-x(1))*(1 + gn/100) + x(1);
         timeCorrector = @(x) gainfix(x + delay,gain) + tpTS(1) - swaps(1);
-
+        alignParams.dx = delay +  swaps(end)-swaps(1);
     end
-
+    
     if ~params.testingmode
         % save the corrected times in the stim file3
         disp('writing synced STIMtimestamps into file')

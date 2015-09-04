@@ -1,4 +1,4 @@
-function h = plotGauss(m, C, sd,varargin)
+function h = plotGaussRF(m, C, sd,varargin)
 
 params.color = [0 0 1];
 params.line = '-';

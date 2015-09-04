@@ -1,4 +1,4 @@
-function [times tmStamp] = readImagerTimes(filename)
+function [times, tmStamp] = readImagerTimes(filename)
 
 % function times = readImagerTimes(name)
 %
@@ -7,8 +7,8 @@ function [times tmStamp] = readImagerTimes(filename)
 %
 % MF 2011-03-09
 
-[path name] = fileparts(filename);
-[trace fs] = getOpticalData([path '/' name '.h5'],1); % get photodiode data
+[path, name] = fileparts(filename);
+[trace, fs] = getOpticalData([path '/' name '.h5'],1); % get photodiode data
 
 tmStamp = 0:1/fs:size(trace)/fs-1/fs; % compute timestamps in sec
 

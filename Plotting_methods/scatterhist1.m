@@ -10,7 +10,7 @@ function [hOUT, mOUT, pOUT] = scatterhist1(A,B,varargin)
 % variable params
 params.midlinecolor = [0.5 0.5 0.5];
 params.midlinewidth = 1;
-params.markersize = 2;
+params.markersize = 4;
 params.markertype = 'O';
 params.MarkerEdgeColor = [0.2 0.2 0.2];
 params.MarkerFaceColor = [0.2 0.2 0.2];
@@ -30,10 +30,13 @@ params.figure = [];
 params.test = 'ttest';
 params.reduce = 1.2;
 params.ticks = [];
+params.boxplot = false;
 
 for i = 1:2:length(varargin)
     params.(varargin{i}) = varargin{i+1};
 end
+
+if params.boxplot; params.reduce = params.reduce+0.2;end
 
 % non variable size params
 left_margin = 0.15;      % normalized left margin for scatter plot
@@ -78,7 +81,7 @@ else
 end
 set(gcf,'Color',[1 1 1])
 
-% scatter plot
+%% scatter plot
 h = subplot(223);
 plot(A,B,params.markertype,'markersize',params.markersize,...
     'MarkerEdgeColor',params.MarkerEdgeColor,'MarkerFaceColor',params.MarkerFaceColor);
@@ -97,10 +100,10 @@ hold on
 plot([mn*params.reduce mx*params.reduce],[mn*params.reduce mx*params.reduce],...
     params.diagtype,'Color',params.midlinecolor,'LineWidth',params.midlinewidth);
 
-% histogram
+%% histogram
+h(2) = subplot(222);
 difrange = (max((A - B)) - min(A - B))*params.heightgain/(mx - mn);
 bin = round(difrange*params.maxbin/(2*params.heightgain));
-h(2) = subplot(222);
 hist(A - B,bin);
 cnt = hist(A - B,bin);
 lim = get(h(2),'YLim');
@@ -116,6 +119,7 @@ set(h(2),'Position',[pos(1) + pos(3) - w2/4,...
     pos(2) + pos(4) - w2/4, w2/params.reduce, w2/params.reduce],...
     'YTick',round(max(cnt)/10)*10,'YTickLabel',[],'box','off','YAxisLocation','right',...
     'xtick',[],'ytick',[],'tickdir','out','xcolor',[1 1 1],'tickdir','in')
+
 
 %% plot extra stuff on histogram
 h(3) = findobj(gca,'Type','patch');
@@ -142,15 +146,7 @@ plot([0 0],[max(cnt)*1.2 lim(2)*difrange],'Color',[1 1 1],'linewidth',4);
 %     'color',[0 0 0],'linewidth',1);
 % plot([min((A - B)) max((A - B))*1.03],[0 0],'-k')
 
-% X axes labels
-set(gcf,'CurrentAxes',h(1))
-text(0.5,-0.15,params.names{1},'FontSize',params.fontsize,...
-    'HorizontalAlignment','center','units','normalized')
-text(-0.15,0.5,params.names{2},'FontSize',params.fontsize,...
-    'HorizontalAlignment','center','rotation',90,'units','normalized')
-set(gca,'Ytick',get(gca,'Xtick'),'yticklabel',get(gca,'xticklabel'))
-
-% Significance addons
+%% Significance addons
 eval(['[t, p] = ' params.test '(A - B,0,params.thr);']);
 if  t == 1
     if p<=0.001
@@ -174,13 +170,55 @@ if  t == 1
         'rotation',-45,'HorizontalAlignment','center','VerticalAlignment','bottom')
 end
 
+%% Labels
 % Title
 axes('Parent', f, 'Units', 'normalized','Position', [0, 0, 1, 1],...
     'Visible', 'off','XLim', [0, 1],'YLim', [0, 1],'NextPlot', 'add');
 htitle = text(0.5,0.9,params.title,'FontSize',params.fontsize * 1.2,'fontweight','bold',...
     'HorizontalAlignment','center','units','normalized','VerticalAlignment', 'top');
-set(gcf,'CurrentAxes',h(1))
 
+% X axes labels
+set(gcf,'CurrentAxes',h(1))
+text(0.5,-0.15,params.names{1},'FontSize',params.fontsize,...
+    'HorizontalAlignment','center','units','normalized')
+text(-0.15,0.5,params.names{2},'FontSize',params.fontsize,...
+    'HorizontalAlignment','center','rotation',90,'units','normalized')
+set(gca,'Ytick',get(gca,'Xtick'),'yticklabel',get(gca,'xticklabel'))
+
+%% boxplot
+if params.boxplot
+    lim = get(gca,'xlim');
+    ticks = get(gca,'Xtick');
+%     axis off
+    hold on
+    boxplot(B,'positions',diff(lim)*0.04+lim(1),'plotstyle','compact',...
+        'medianstyle','target','labels',{''})
+    hold on
+    boxplot(A,'positions',diff(lim)*0.04+lim(1),'plotstyle','compact',...
+        'orientation','horizontal','medianstyle','target','labels',{''})
+    set(gca,'XTickLabel',{' '})
+    set(gca,'YTickLabel',{' '})
+    xlim(lim)
+    ylim(lim)
+    grid on
+    set(gca,'Ytick',ticks,'yticklabel',[],'Xtick',ticks,'xticklabel',[],...
+       'xcolor',[0.7 0.7 0.7],'ycolor',[0.7 0.7 0.7],'box','off','tickdir','out')
+    for i = 1:length(ticks)
+       text(lim(1)-diff(lim)*0.05,ticks(i),num2str(ticks(i)),...
+           'horizontalalignment','right','verticalalignment','middle')
+       text(ticks(i),lim(1)-diff(lim)*0.05,num2str(ticks(i)),...
+           'horizontalalignment','right','verticalalignment','middle','rotation',45)
+%        plot([ticks(i) ticks(i)],lim,'color',[0.9 0.9 0.9])
+%              plot(lim,[ticks(i) ticks(i)],'color',[0.9 0.9 0.9])
+%        text(lim(1),ticks(i),'-',...
+%            'horizontalalignment','right','verticalalignment','middle')
+%        text(ticks(i),lim(1),'-',...
+%            'horizontalalignment','right','verticalalignment','middle','rotation',90)
+%         line([lim(1)-diff(lim)*0.05 lim(1)],[ticks(i)-diff(lim)*0.05 ticks(i)])
+    end
+end 
+
+%% Output
 if nargout>0
     hOUT.axis = h;
     hOUT.title = htitle;

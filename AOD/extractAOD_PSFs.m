@@ -33,8 +33,12 @@ params = parseVarArgs( params, varargin{:}, 'assert');
 pitch  = pitch([2 1 3]);   % xyz -> yzx to make matlab happy
 params.spacing = params.spacing([2 1 3]);  % xyz -> yzx to make matlab happy
 
-stack = loadAODStack(filename);
-stack = mean(stack,4);
+
+% stack = loadAODStack(filename);
+stack = aodReader(filename,'Volume','ch1');
+data = stack(:,:,:,:);
+stack = mean(data,4);
+stack = stack + abs(min(stack(:)));
 sz = size(stack);
 
 if params.showFigures

@@ -18,6 +18,7 @@ params.bar = 1;
 params.error = 'sde';
 params.colors = [];
 params.barwidth = 0.7;
+params.test = 'ttest2';
 
 params = getParams(params,varargin);
 
@@ -112,8 +113,8 @@ if params.sig
         
         % plot the erros if significant
         for iPair = 1:length(seq)
-            [sig, p] = ttest2(data{iRow,xind(seq(iPair))},...
-                data{iRow,yind(seq(iPair))},params.thr);
+            [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+                'data{iRow,yind(seq(iPair))},params.thr)']);
             if sig
                 x1 = loc(iRow,xind(seq(iPair)));
                 x2 = loc(iRow,yind(seq(iPair)));
@@ -134,10 +135,10 @@ set(gca,'FontSize',params.fontsize);
 set(gca,'Xtick',1:nRows)
 if ~isempty(params.names)
     set(gca,'XTickLabel',params.names)
-    if nCols==1
+%     if nCols==1
         ht = xticklabel_rotate([],params.angle,[]);
         set(ht,'HorizontalAlignment','right')
-    end
+%     end
 end
 
 if ~params.bar

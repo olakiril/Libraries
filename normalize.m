@@ -18,6 +18,13 @@ elseif dim == 2;
     x = x';
     nX = bsxfun(@rdivide,bsxfun(@minus,x,nanmin(x)),bsxfun(@minus,nanmax(x),nanmin(x)));
     nX = nX';
+elseif dim==3
+    nX = x;
+    for idim = 1:size(x,3);
+        nX(:,:,idim) = (x(:,:,idim) - nanmin(reshape(x(:,:,idim),[],1)))...
+            /(nanmax(reshape(x(:,:,idim),[],1)) - nanmin(reshape(x(:,:,idim),[],1)));
+        
+    end
 elseif nargin==3
     nX = (x - nanmin(x(:)))/(mx - nanmin(x(:)));
 elseif nargin>3

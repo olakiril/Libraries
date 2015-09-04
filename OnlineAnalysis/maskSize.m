@@ -17,9 +17,11 @@ m = m - 1;
 m = mask.*m;
 m(m==0) = 1;
 
-% subplot(311)
-% imagesc(mask)
-% subplot(312)
-% imagesc(m)
-% subplot(313)
-% imagesc(m+mask)
+% if nargout<2
+%     subplot(311)
+%     imagesc(mask)
+%     subplot(312)
+%     imagesc(m)
+%     subplot(313)
+%     imagesc(m+mask)
+% end

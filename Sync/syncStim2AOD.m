@@ -10,6 +10,7 @@ function [stimfiles, tpTS] = syncStim2AOD(tprname,varargin)
 params.testingmode = 0;
 params.scprog = 'AOD';
 params.aodReader = 'old';
+params.sec2msec = 1000; % 1000 assumes that the mac times are in seconds
 params =  getParams(params,varargin);
 gainfix = @(x,gn,x1,xend)  (x-x1)*(1 + gn/(xend - x1)) + x1;
 
@@ -38,7 +39,7 @@ for iStim = 1:length(stimfiles)
     stimData = load(getLocalPath(stimfiles{iStim}));
     
     % get the swapTimes for every trial
-    swaps = vertcat(stimData.stim.params.trials.swapTimes)*1000; % ms
+    swaps = vertcat(stimData.stim.params.trials.swapTimes)*params.sec2msec; % ms
     %     swapsL = swaps(end) - swaps(1);
     
     % Chop Times
@@ -98,7 +99,7 @@ for iStim = 1:length(stimfiles)
         % save the corrected times in the stim file3
         disp('writing synced STIM timestamps into file')
         for iTrial = 1:length(stimData.stim.events)
-            oldTimes = stimData.stim.events(iTrial).times * 1000; %ms
+            oldTimes = stimData.stim.events(iTrial).times * params.sec2msec; %ms
             stimData.stim.events(iTrial).syncedTimes = timeCorrector(oldTimes);
         end
         stimData.stim.synchronized = 1;

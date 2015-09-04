@@ -16,7 +16,10 @@ params.xstep = 2000;
 params.step = 5;
 params.ylim = [0 3];
 params.marker = '-';
+params.dx = X(1)-Y(1);
+params.gain = 0;
 params = getParams(params,varargin);
+
 
 % set initial parameters
 step = params.step;
@@ -24,23 +27,27 @@ xstep = params.xstep;
 yl = params.ylim;
 data1 = X;
 data2 = Y;
-dx = data1(1)-data2(1);
+dx = params.dx;
 dy = 0;
 go = false;
-gain = 0;
+gain = params.gain;
 
 % plot the data
+% gain function
+gainfix = @(x,gn)  (x-x(1))*(1 + gn/100) + x(1);
+
+
 h = figure('NumberTitle','off',...
     'Name','align Images',...
     'KeyPressFcn',@dispkeyevent);
-set(h,'position',[320        1036        1310         468])
-clf
+p = get(h,'position');
+set(h,'position',[p(1)-p(3)/2,p(2),p(3)*2,p(4)])
 hold on;
 plot(data1(:,1),data1(:,2),params.marker);
-plot(data2,0.95*ones(length(data2),1),'.','Color',[1 0 0])
+plot(gainfix(data2+dx,gain),0.95*ones(length(data2),1)+dy,'.','Color',[1 0 0])
 ylim([0 3])
 xl = get(gca,'xlim');
-xl = [data1(1)-diff(xl) data1(1)+diff(xl)];
+xl = [data2(1)+dx-diff(xl) data2(1)+dx+diff(xl)];
 xlim(xl)
 display('Align the data')
 
@@ -53,7 +60,7 @@ end
 outdx = dx;
 outgain = gain;
 
-function dispkeyevent(foo, event)
+function dispkeyevent(~, event)
 
 global data1
 global data2
@@ -88,6 +95,12 @@ elseif strcmp(event.Key,'rightbracket')
 elseif strcmp(event.Key,'leftbracket')
     dx = dx-step*500;
       xl = xl-step*500;
+elseif strcmp(event.Key,'slash')
+    dx = dx+step*2500;
+    xl = xl+step*2500;
+elseif strcmp(event.Key,'period')
+    dx = dx-step*2500;
+      xl = xl-step*2500;
 elseif strcmp(event.Key,'0') 
     gain = gain+0.0005;
 elseif strcmp(event.Key,'9') 

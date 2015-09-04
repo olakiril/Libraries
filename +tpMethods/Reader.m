@@ -63,7 +63,7 @@ classdef Reader < handle
             self.lps =  self.height * self.fps;
         end
         
-        
+         
         function yes = hasChannel(self, iChan)
             yes = ismember(iChan, 1:4) ...
                 && self.hdr.acq.(sprintf('savingChannel%u', iChan))==1;
@@ -120,9 +120,10 @@ classdef Reader < handle
                 t.close();
             end
             frames(:,:,iframe:end) =[];
-            
+            frames(:,:,end-(mod(size(frames,3),self.nChans)-1):end) = [];
+
             % split channels
-            img = ones(size(frames,1),size(frames,2),size(frames,3)/self.nChans,length(iChan),'uint16');
+            img = ones(size(frames,1),size(frames,2),round(size(frames,3)/self.nChans),length(iChan),'uint16');
             for iCn = 1:length(iChan);
                 chan = iChan(iCn);
                 assert(self.hasChannel(chan), 'Channel %d was not recorded', chan)
@@ -149,6 +150,10 @@ classdef Reader < handle
             
             if nargin>2 && ~isempty(frameInd)
                 % get asked frames
+                if max(frameIdx)>size(img,3)
+                    display('Frame index too large! Correcting Index')
+                    frameInd(frameInd>size(img,3)) = [];
+                end
                 img = img(:,:,frameInd,:);
             end
         end

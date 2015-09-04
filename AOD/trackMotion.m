@@ -9,6 +9,8 @@ function [xpos ypos zpos t details] = trackMotion(fn)
 %% load and normalize stack
 [mot t coordinates] = loadMotion(fn);
 
+ar = aodReader(fn,'Motion');
+
 mot = double(mot);
 
 m = mean(reshape(mot(1,:,:,:),[],size(mot,4))');

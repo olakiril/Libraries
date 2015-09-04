@@ -6,4 +6,6 @@ if numel(sz)<2; sz(2) = sz(1);end
 cx=sz(1)/2;cy=sz(2)/2;ix=sz(1);iy=sz(2);
 [x,y]=meshgrid(-(cx-1):(ix-cx),-(cy-1):(iy-cy));
 c_mask=((x.^2+y.^2)<=r^2);
-%  imagesc(c_mask)
+if nargout<1
+ imagesc(c_mask)
+end
