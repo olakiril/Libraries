@@ -19,7 +19,7 @@ mi = cell(size(pairs,1),1);
 nclasses = 2;
 
 % loop through the pairs
-parfor ipair = 1:size(pairs,1)
+for ipair = 1:size(pairs,1)
     data = traces(:,pairs(ipair,:),:);
     
     % initialize
@@ -34,11 +34,13 @@ parfor ipair = 1:size(pairs,1)
         ind(iTrial) = false;
         r = data(:,:,ind);
         group = repmat((1:nclasses)',1,size(r,3));
-        SVMStruct = svmtrain(r(:,:)',group(:));
-        
+%         SVMStruct = svmtrain(r(:,:)',group(:));
+         SVMStruct = fitcsvm(r(:,:)',group(:));
+         
         % loop through classes
         for iClass = 1:nclasses
-            indx = svmclassify(SVMStruct,data(:,iClass,iTrial)');
+%              indx = svmclassify(SVMStruct,data(:,iClass,iTrial)');
+             indx = predict(SVMStruct,data(:,iClass,iTrial)');
             F(iClass,indx) = F(iClass,indx) + 1;
         end
     end

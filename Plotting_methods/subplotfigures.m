@@ -32,7 +32,6 @@ else
     index = 1:length(figH);
 end
 
-
 for fig = 1:length(index)
     ifig = index(fig);
     name = get(figH(ifig),'Name');

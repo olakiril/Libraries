@@ -24,7 +24,7 @@ mi = cell(size(pairs,1),1);
 nclasses = 2;
 
 % loop through the pairs
-parfor ipair = 1:size(pairs,1)
+for ipair = 1:size(pairs,1)
     data = traces(:,pairs(ipair,:),:);
     
     % initialize

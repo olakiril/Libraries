@@ -192,10 +192,10 @@ if params.boxplot
 %     axis off
     hold on
     boxplot(B,'positions',diff(lim)*0.04+lim(1),'plotstyle','compact',...
-        'medianstyle','target','labels',{''})
+        'medianstyle','target','labels',{''},'jitter',0)
     hold on
     boxplot(A,'positions',diff(lim)*0.04+lim(1),'plotstyle','compact',...
-        'orientation','horizontal','medianstyle','target','labels',{''})
+        'orientation','horizontal','medianstyle','target','labels',{''},'jitter',0)
     set(gca,'XTickLabel',{' '})
     set(gca,'YTickLabel',{' '})
     xlim(lim)

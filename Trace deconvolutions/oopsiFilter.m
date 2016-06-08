@@ -40,12 +40,12 @@ parfor iTrace = 1:size(traces,2)
         ops.sig = mean(mad( traces(:,iTrace)',1)*1.4826*traceOpt.sigma);
     end
     
-    if nargout>1
-        t = traces(:,iTrace);
-        [traces(:,iTrace),~,~,d] = fast_oopsi( traces(:,iTrace)', struct('dt',1/fps),ops);
-        qual(iTrace) = corr(t,d);
-    else
-        traces(:,iTrace) = fast_oopsi( traces(:,iTrace)', struct('dt',1/fps),ops);
-    end
+%     if nargout>1
+%         t = traces(:,iTrace);
+%         [traces(:,iTrace),~,~,d] = fast_oopsi( traces(:,iTrace)', struct('dt',1/fps),ops);
+%         qual(iTrace) = corr(t,d);
+%     else
+%         traces(:,iTrace) = fast_oopsi( traces(:,iTrace)', struct('dt',1/fps),ops);
+%     end
 end
 

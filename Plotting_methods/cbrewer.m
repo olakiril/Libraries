@@ -48,7 +48,7 @@ if (~exist('interp_method', 'var'))
 end
 
 % If no arguments
-if (~exist('ctype', 'var') | ~exist('cname', 'var') | ~exist('ncol', 'var'))
+if (~exist('ctype', 'var') || ~exist('cname', 'var') || ~exist('ncol', 'var'))
     disp(' ')
     disp('INPUT:')
     disp('  - ctype: type of color table *seq* (sequential), *div* (divergent), *qual* (qualitative)')
@@ -91,12 +91,12 @@ if (~isfield(colorbrewer.(ctype),cname))
 end
 
 if (ncol>length(colorbrewer.(ctype).(cname)))
-    disp(' ')
-    disp('----------------------------------------------------------------------')
-    disp(['The maximum number of colors for table *' cname '* is ' num2str(length(colorbrewer.(ctype).(cname)))])
-    disp(['The new colormap will be extrapolated from these ' num2str(length(colorbrewer.(ctype).(cname))) ' values'])
-    disp('----------------------------------------------------------------------')
-    disp(' ')
+%     disp(' ')
+%     disp('----------------------------------------------------------------------')
+%     disp(['The maximum number of colors for table *' cname '* is ' num2str(length(colorbrewer.(ctype).(cname)))])
+%     disp(['The new colormap will be extrapolated from these ' num2str(length(colorbrewer.(ctype).(cname))) ' values'])
+%     disp('----------------------------------------------------------------------')
+%     disp(' ')
     cbrew_init=colorbrewer.(ctype).(cname){length(colorbrewer.(ctype).(cname))};
     colormap=interpolate_cbrewer(cbrew_init, interp_method, ncol);
     colormap=colormap./255;

@@ -34,8 +34,8 @@ for ifig = 1:length(figH)
 
     set(figH(ifig),'PaperPositionMode','auto')
 
-%     saveas(figH(ifig),name,type)
-    print(figH(ifig),type,name)
+    saveas(figH(ifig),name,type)
+%     print(figH(ifig),type,name)
     if ~ exist('nofig','var')
         saveas(figH(ifig),name,'fig')
     end

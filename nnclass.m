@@ -7,8 +7,8 @@ function [J, rJ] = nnclass(traces,varargin)
 %
 % MF 2011-08-25
 
-params.repetitions = 30;
-params.cells = 1:size(traces,1);
+params.repetitions = 1;
+params.cells = size(traces,1);
 params.frames = 0;
 params.trials = 0;
 
@@ -29,7 +29,7 @@ for iCell = params.cells;
     for iRep = 1:params.repetitions
         cellindx = randperm(size(traces,1));
         data = traces(cellindx(1:iCell),:,:);
-        parfor iTrial = 1:size(traces,3)
+        for iTrial = 1:size(traces,3)
             ind = true(size(traces,3),1);
             ind(iTrial) = false;
             r = mean(data(:,:,ind),3);
@@ -66,7 +66,7 @@ if nargout>1
         for iRep = 1:params.repetitions
             cellindx = randperm(size(traces,1));
             randdata = randtraces(cellindx(1:iCell),:,:);
-            parfor iTrial = 1:size(traces,3)
+            for iTrial = 1:size(traces,3)
                 ind = true(size(traces,3),1);
                 ind(iTrial) = false;
                 rr = mean(randdata(:,:,ind),3);

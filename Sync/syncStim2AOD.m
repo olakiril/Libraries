@@ -1,4 +1,4 @@
-function [stimfiles, tpTS] = syncStim2AOD(tprname,varargin)
+function [stimfiles, tpTS, stims] = syncStim2AOD(tprname,varargin)
 
 % function syncStim2Tpr(tprname,varargin)
 %
@@ -33,10 +33,11 @@ pdSpF = mean(diff(tpTS))/(dt*1000);
 detflips = detectFlipsM(pd(:,1),pdSR,30);
 flipTimes = interp1(tpTS, 1+(detflips/pdSpF),'linear','extrap'); % ms
 flips = flipTimes;
+stims = [];
 for iStim = 1:length(stimfiles)
     
     % Load the stim file
-    stimData = load(getLocalPath(stimfiles{iStim}));
+    stimData = load(getLocalPath(strrep(stimfiles{iStim},'\','/')));
     
     % get the swapTimes for every trial
     swaps = vertcat(stimData.stim.params.trials.swapTimes)*params.sec2msec; % ms
@@ -95,17 +96,19 @@ for iStim = 1:length(stimfiles)
         timeCorrector = @(x) gainfix(x + delay,gain) + tpTS(1) - swaps(1);
     end
     
+   
+    for iTrial = 1:length(stimData.stim.events)
+        oldTimes = stimData.stim.events(iTrial).times * params.sec2msec; %ms
+        stimData.stim.events(iTrial).syncedTimes = timeCorrector(oldTimes);
+    end
+    stimData.stim.synchronized = 1;
+    stim = stimData.stim; 
     if ~params.testingmode
         % save the corrected times in the stim file3
         disp('writing synced STIM timestamps into file')
-        for iTrial = 1:length(stimData.stim.events)
-            oldTimes = stimData.stim.events(iTrial).times * params.sec2msec; %ms
-            stimData.stim.events(iTrial).syncedTimes = timeCorrector(oldTimes);
-        end
-        stimData.stim.synchronized = 1;
-        stim = stimData.stim; %#ok<NASGU>
         save(getLocalPath(stimfiles{iStim}),'stim')
     end
+    stims{iStim} = stim;
     swapsTest{iStim} = timeCorrector(swaps);%#ok<AGROW>
 end
 

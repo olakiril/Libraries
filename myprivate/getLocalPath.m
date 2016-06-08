@@ -24,6 +24,9 @@ if nargin < 2
 end
 os = os(1:min(3,length(os)));
 
+% make sure there are no backslashes
+ p(strfind(p,'\')) = '/';
+ 
 % local aliases
 input = {'/lab','/stor01','/stor02','/scratch01','/2P1'};
 switch lower(os)
@@ -44,5 +47,3 @@ for i = 1:length(input)
     end
 end
 
-% make sure there are no backslashes
- p(strfind(p,'\')) = '/';

@@ -44,7 +44,7 @@ if strcmp(scpr,'MPScan')
     outFileName =  getFilename(tp);
     outFileName = [outFileName(1:end - 6) '_overview.png'];
 else
-    imS = mean(tp.read(1),3);
+    imS = mean(tp.read(params.channel),3);
     imS(end+1,:) = imS(end,:);
     % set initial parameters
     rot =-228;
