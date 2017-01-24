@@ -147,6 +147,7 @@ for n = 1:Ninputs
       '(?<start>, start: \d+\.\d+)?'...
       ', bitrate: (?<bitrate>(-?\d+ kb/s)|(N/A))\n'...
       '(?<data>.*)'],'names');
+  info
    
    if strcmp(info(n).duration,'N/A')
       info(n).duration = [];
