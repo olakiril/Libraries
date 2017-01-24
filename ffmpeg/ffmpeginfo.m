@@ -139,6 +139,7 @@ Ninputs = numel(I);
 I = [I numel(msg)+1];
 info = struct('format',{},'filename',{},'meta',{},'duration',{},'start',{},'bitrate',{},'data',{});
 info
+I
 for n = 1:Ninputs    
    input = msg(I(n):I(n+1)-1)
    info = regexp(input,['Input #\d+, (?<format>.*?), from ''(?<filename>.+?)?'':\n'...
