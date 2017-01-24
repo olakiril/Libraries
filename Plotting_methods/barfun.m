@@ -115,7 +115,7 @@ if params.sig
         for iPair = 1:length(seq)
             [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
                 'data{iRow,yind(seq(iPair))},params.thr)']);
-            if sig
+            if ~isnan(sig) && sig
                 x1 = loc(iRow,xind(seq(iPair)));
                 x2 = loc(iRow,yind(seq(iPair)));
                 plot([x1+hsp x2-hsp],...

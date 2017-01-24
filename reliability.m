@@ -23,20 +23,23 @@ rl = nan(size(traces,1),1);
 if iscell(traces); sz = cellfun(@length,traces); end
 
 % loop through cells
-for icell = 1:size(traces,1);
+for icell = 1:size(traces,1)
    
+    
     if iscell(traces)
         trace = traces(icell,:);
-        for istim = 1:length(trace);
+        for istim = 1:length(trace)
             trace{istim}(end+1:max(sz(1,:))) = nan;
             trace{istim} = trace{istim}(:);
         end
         trace = cell2mat(trace);
-    else trace = squeeze(traces(icell,:,:))';
+    else
+        if size(traces,3)<2;rl(icell)=nan;continue;end
+        trace = squeeze(traces(icell,:,:))'; %[trials time]
     end
     
     % filter trials
-    trace = trace(:,sum(~isnan(trace))>1); % has at least 3 trials
+    trace = trace(:,sum(~isnan(trace))>1); % has at least 2 trials
     
     % explained Variance
     rl(icell) = var(nanmean(trace,1))/nanvar(trace(:));

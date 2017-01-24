@@ -1,6 +1,6 @@
-function [J, rJ] = nnclass(traces,varargin)
+function [J, rJ] = nnclassSV(traces,varargin)
 
-% function [J rJ] = nnclass(traces)
+% function [J rJ] = nnclassSV(traces)
 %
 % performs a nearest neighbor classification
 % traces: [cells classes trials]
@@ -26,7 +26,7 @@ nclasses = 2;
 J = nan(length(params.cells),y);
 rJ = nan(length(params.cells),1);
 ic = 0;
-for iCell = params.cells;
+for iCell = params.cells
     p = nan(params.repetitions,size(traces,3),size(traces,2));
     for iRep = 1:params.repetitions
         cellindx = randperm(size(traces,1));

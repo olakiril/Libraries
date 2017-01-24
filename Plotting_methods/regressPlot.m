@@ -27,8 +27,18 @@ params.linecolor = [0 0 0];
 params.stat2title = 0;
 params.linewidth = 2;
 params.method = 'regress';
+params.globalcolor = [];
 
 params = getParams(params,varargin);
+
+
+if ~isempty(params.globalcolor)
+    params.color = params.globalcolor;
+    params.MarkerEdgeColor = params.globalcolor;
+    params.MarkerFaceColor = params.globalcolor;
+    params.textcolor = params.globalcolor*0.5;
+    params.linecolor = params.globalcolor*0.5;
+end
 
 if ~params.subplot && params.plot && isempty(params.figure)
     fh = figure;
