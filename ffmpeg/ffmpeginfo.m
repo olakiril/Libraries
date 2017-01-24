@@ -137,9 +137,8 @@ end
 
 Ninputs = numel(I);
 I = [I numel(msg)+1];
-info = struct('format',{},'filename',{},'meta',{},'duration',{},'start',{},'bitrate',{},'data',{});
-info
-I
+% info = struct('format',{},'filename',{},'meta',{},'duration',{},'start',{},'bitrate',{},'data',{});
+
 for n = 1:Ninputs    
    input = msg(I(n):I(n+1)-1)
    info = regexp(input,['Input #\d+, (?<format>.*?), from ''(?<filename>.+?)?'':\n'...
@@ -147,8 +146,7 @@ for n = 1:Ninputs
       '  Duration: (?<duration>(\d+:\d+:\d+\.\d+)|(N/A))'...
       '(?<start>, start: \d+\.\d+)?'...
       ', bitrate: (?<bitrate>(-?\d+ kb/s)|(N/A))\n'...
-      '(?<data>.*)'],'names');
-  info
+      '(?<data>.*)'],'names')
    
    if strcmp(info(n).duration,'N/A')
       info(n).duration = [];
