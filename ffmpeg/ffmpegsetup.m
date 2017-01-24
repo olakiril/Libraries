@@ -21,7 +21,7 @@ end
 % first check if it is arleady in the system path (should be the case for
 % both linux & mac
 ffmpegnames = 'ffmpeg';
-[fail,~] = system([ffmpegnames ' -v']);
+[fail,~] = system([ffmpegnames ' -h']);
 if ~fail
    ffmpegexe = ffmpegnames;
    setpref('ffmpeg','exepath',ffmpegexe); % save for later
