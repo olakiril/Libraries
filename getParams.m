@@ -20,9 +20,9 @@ if ~isempty(vararginput)
 
     % assign params in structure
     if ~sum(struc)==0
-        a = fields(vararginput{find(struc)});
+        a = fields(vararginput{struc});
         for i = 1:size(a,1)
-            params.(cell2mat(a(i)))= vararginput{find(struc)}.(cell2mat(a(i)));
+            params.(cell2mat(a(i)))= vararginput{struc}.(cell2mat(a(i)));
         end
     end
 

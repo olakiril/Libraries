@@ -134,11 +134,7 @@ if nargout<1 % no output argument, just display the ffmpeg output
 end
 
 % Parse the ffmpeg output to the info struct
-
-
 I = [I numel(msg)+1];
-
-
 input = msg(I(1):I(2)-1);
 info = regexp(input,'Input #\d+, (?<format>.*?), from ''(?<filename>.+?)?'':(?<meta>  Metadata:\n.*?\n)?','names');
 duration = regexp(input,'Duration: (?<duration>(\d+:\d+:\d+\.\d+)|(N/A))','names');
@@ -149,7 +145,6 @@ info.duration = duration.duration;
 info.start = start.start;
 info.bitrate = bitrate.bitrate;
 info.data = data.data;
-
 
 if strcmp(info.duration,'N/A')
     info.duration = [];
