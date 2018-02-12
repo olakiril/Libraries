@@ -12,15 +12,20 @@ if nargin<2 || isempty(dim)
     dim = 0;
 end    
 
-if dim == 1;
+if length(unique(x(:)))==1
+    nX = x;
+    return
+end
+
+if dim == 1
     nX = bsxfun(@rdivide,bsxfun(@minus,x,nanmin(x)),bsxfun(@minus,nanmax(x),nanmin(x)));
-elseif dim == 2;
+elseif dim == 2
     x = x';
     nX = bsxfun(@rdivide,bsxfun(@minus,x,nanmin(x)),bsxfun(@minus,nanmax(x),nanmin(x)));
     nX = nX';
 elseif dim==3
     nX = x;
-    for idim = 1:size(x,3);
+    for idim = 1:size(x,3)
         nX(:,:,idim) = (x(:,:,idim) - nanmin(reshape(x(:,:,idim),[],1)))...
             /(nanmax(reshape(x(:,:,idim),[],1)) - nanmin(reshape(x(:,:,idim),[],1)));
         
@@ -32,3 +37,4 @@ elseif nargin>3
 else
     nX = (x - nanmin(x(:)))/(nanmax(x(:)) - nanmin(x(:)));
 end
+

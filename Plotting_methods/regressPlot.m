@@ -28,6 +28,7 @@ params.stat2title = 0;
 params.linewidth = 2;
 params.method = 'regress';
 params.globalcolor = [];
+params.linetype = '-';
 
 params = getParams(params,varargin);
 
@@ -59,7 +60,7 @@ if size(b,1)>size(b,2)
     b = b';
 end
 
-if params.constrict
+if ~isempty(params.constrict)
     i = a<prctile(a,params.constrict(1,2)) & a>prctile(a,params.constrict(2,2)) & b<prctile(b,params.constrict(1,1)) & b>prctile(b,params.constrict(2,1));
     a = a(i);
     b = b(i);
@@ -93,7 +94,7 @@ if params.plot
     Xscale = AxisPro(2)-AxisPro(1);
     if p<params.thr
         data = [nanmin(b)-std(b)/2 nanmax(b)+std(b)/2];
-        plot (data,reg(1) + reg(2)*data,'color',params.linecolor,'LineWidth',params.linewidth);
+        plot (data,reg(1) + reg(2)*data,params.linetype,'color',params.linecolor,'LineWidth',params.linewidth);
         if ~params.stat2title
             tex{1} = [type ' : ' num2str(round(r*100)/100)];
             tex{2} = ['p < ' num2str(params.thr)];
@@ -104,8 +105,8 @@ if params.plot
         tex{1} = '';
         tex{2} = '';
     end
-    htext(1) = text((AxisPro(1)+(Xscale*8)/12),(AxisPro(3)+(Yscale*1.5)/12),tex{1},'color',params.textcolor,'FontSize',params.fontsize);
-    htext(2) = text((AxisPro(1)+(Xscale*8)/12),(AxisPro(3)+(Yscale*0.5)/12),tex{2} ,'color',params.textcolor,'FontSize',params.fontsize);
+    htext(1) = text((AxisPro(1)+(Xscale*1)/12),(AxisPro(3)+(Yscale*9)/12),tex{1},'color',params.textcolor,'FontSize',params.fontsize);
+    htext(2) = text((AxisPro(1)+(Xscale*1)/12),(AxisPro(3)+(Yscale*8)/12),tex{2} ,'color',params.textcolor,'FontSize',params.fontsize);
     
     if params.midline
         maxV = nanmax([a b]);
@@ -134,7 +135,7 @@ if params.plot
         set(gca,'position',[pos(1)*1.4 pos(2)*1.4 pos(3)*0.85 pos(4)*0.85]);
         xlabh = get(gca,'XLabel');
         pos = get(xlabh,'Position');
-        set(xlabh,'Position',[pos(1) pos(2)*1.15 pos(3)])
+        %set(xlabh,'Position',[pos(1) pos(2)*1.15 pos(3)])
         xlabh = get(gca,'YLabel');
         pos = get(xlabh,'Position');
         set(xlabh,'Position',[pos(1)*1.1 pos(2) pos(3)])

@@ -19,17 +19,17 @@ nposYy = (ytick-yl(1))/(yl(2)-yl(1));
 nposYx = -0.02;
 
 if nargin<1
-    ticksize = 0.02;
+    ticksize = 0.05;
 end
 
 for i = 1:length(xlabels)
-    annotation('line',[nposXx(i) nposXx(i)]*(pos(3))+pos(1),[pos(2) pos(2)+ticksize])
+    annotation('line',[nposXx(i) nposXx(i)]*(pos(3))+pos(1),[pos(2) pos(2)+pos(2)*ticksize])
     text(nposXx(i),nposXy,xlabels(i),'units','normalized','horizontalalignment','center',...
         'verticalalignment','top','fontsize',fz)
 end
 
 for i = 1:length(ylabels)
-    annotation('line',[pos(1) pos(1)+ticksize],[nposYy(i) nposYy(i)]*(pos(4))+pos(2))
+    annotation('line',[pos(1) pos(1)+pos(1)*ticksize],[nposYy(i) nposYy(i)]*(pos(4))+pos(2))
     text(nposYx,nposYy(i),ylabels(i),'units','normalized','horizontalalignment','right',...
         'verticalalignment','middle','fontsize',fz)   
 end

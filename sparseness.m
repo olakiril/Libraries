@@ -12,7 +12,7 @@ params.sd = 1;
 params = getParams(params,varargin);
 
 if strcmp(params.type,'treves_roll') % Treves Roll equation
-    spa = (1 - ((sum(data)/size(data,1)).^2./sum(data.^2/size(data,1))))/(1 - (1/size(data,1)));
+    spa = (1 - ((nansum(data)/size(data,1)).^2./nansum(data.^2/size(data,1))))/(1 - (1/size(data,1)));
 elseif strcmp(params.type,'pzero') % probability of zero response
     spa = mean(data < repmat(std(data,[],2) * params.sd,[1 size(data,2)]),1);
 elseif strcmp(params.type,'kurtosis') % kurtosis

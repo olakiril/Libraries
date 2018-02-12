@@ -1,6 +1,6 @@
-function [trace, d] = trresize(trace,fps,bin,method)
+function [trace, d, new_fps] = trresize(trace,fps,bin,method)
 
-
+tr_sz = size(trace,1);
 
 if nargin<4 || strcmp(method,'conv')
     d = max(1,round(bin/1000*fps));
@@ -35,3 +35,5 @@ else
     trace = interp1(1:size(trace,1),trace,1:d:size(trace,1),method);
     if size(trace,1)==1;trace = trace';end
 end
+
+new_fps = size(trace,1)/tr_sz*fps; 

@@ -17,8 +17,8 @@ params.sig = 1;
 params.bar = 1;
 params.error = 'sde';
 params.colors = [];
-params.barwidth = 0.7;
-params.test = 'ttest2';
+params.barwidth = 1;
+params.test = 'anovan';
 
 params = getParams(params,varargin);
 
@@ -39,7 +39,8 @@ else
 end
 
 %%%%%% edit for matlab 2014b
-colors = parula(nCols);
+%colors = parula(nCols);
+colors = cbrewer('qual','Set2',max([nCols,3]));
 for i = 1:nCols
     handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',params.barwidth/nCols,...
         'faceColor',colors(i,:),'edgeColor',[1,1,1]); % standard implementation of bar fn
@@ -71,7 +72,6 @@ end
 mx = max((values(:)) + errors(:));
 if params.bar;mx = max([0 mx]);end
 vsp = ( max(abs(values(:)) + errors(:)))*0.1;
-
 if params.sig
     df =  mean(mean(diff(loc')));
     hsp = df*0.1;
@@ -112,9 +112,22 @@ if params.sig
         end
         
         % plot the erros if significant
+        if strcmp(params.test,'anovan')
+            C = [];
+            for idata = 1:length(data); C = [C;ones(length(data{idata}),1)*idata];end
+            [~,~,stats] = anovan(cell2mat(cellfun(@(x) x(:),data(:),'uni',0)),C,'Display','off');
+            stat = multcompare(stats,'display','off');
+        end
+        
         for iPair = 1:length(seq)
-            [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
-                'data{iRow,yind(seq(iPair))},params.thr)']);
+            if ~strcmp(params.test,'anovan')
+                [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+                    'data{iRow,yind(seq(iPair))},params.thr)']);
+            else
+               p = stat(stat(:,1)==xind(seq(iPair)) & stat(:,2)==yind(seq(iPair)),6);
+               sig = p<params.thr;
+            end
+            
             if ~isnan(sig) && sig
                 x1 = loc(iRow,xind(seq(iPair)));
                 x2 = loc(iRow,yind(seq(iPair)));
@@ -153,10 +166,10 @@ if nargout
 end
 
 function ast = pval(p)
-if p<0.01
-    ast = '**';
-elseif p<0.001
+if p<0.001
     ast = '***';
+elseif p<0.01
+    ast = '**';
 else ast = '*';
 end
 

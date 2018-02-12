@@ -10,7 +10,7 @@ function [hOUT, mOUT, pOUT] = scatterhist1(A,B,varargin)
 % variable params
 params.midlinecolor = [0.5 0.5 0.5];
 params.midlinewidth = 1;
-params.markersize = 4;
+params.markersize = 2;
 params.markertype = 'O';
 params.MarkerEdgeColor = [0.2 0.2 0.2];
 params.MarkerFaceColor = [0.2 0.2 0.2];

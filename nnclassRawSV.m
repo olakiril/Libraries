@@ -19,7 +19,7 @@ mi = cell(size(pairs,1),1);
 nclasses = 2;
 
 % loop through the pairs
-for ipair = 1:size(pairs,1)
+parfor ipair = 1:size(pairs,1)
     data = traces(:,pairs(ipair,:),:);
     
     % initialize
@@ -35,7 +35,8 @@ for ipair = 1:size(pairs,1)
         r = data(:,:,ind);
         group = repmat((1:nclasses)',1,size(r,3));
 %         SVMStruct = svmtrain(r(:,:)',group(:));
-         SVMStruct = fitcsvm(r(:,:)',group(:));
+%          SVMStruct = fitcsvm(r(:,:)',group(:));
+         SVMStruct = fitclinear(r(:,:)',group(:));
          
         % loop through classes
         for iClass = 1:nclasses

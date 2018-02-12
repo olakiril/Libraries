@@ -22,7 +22,7 @@ end
 if ~params.manual
     if strcmpi(params.method,'std')
         err = nanstd(traces);
-    elseif strcmpi(params.method,'sem');
+    elseif strcmpi(params.method,'sem')
         err = nanstd(traces)/sqrt(size(traces,1));
     else
         error('Unsupported method');
