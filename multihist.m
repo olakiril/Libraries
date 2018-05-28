@@ -16,6 +16,7 @@ params.normalize = 1;
 params.eq = 1;
 params.cumsum = 0;
 params.indx = [];
+params.stairs = 1;
 
 params = getParams(params,varargin);
 
@@ -46,7 +47,11 @@ for i = 1:length(data)
         n1 = cumsum(n1);
     end
     
-    plot(indx, n1,params.linestyle,'Color',params.colors(i,:),'linewidth',params.linewidth);
+    if params.stairs
+        stairs(indx,n1,params.linestyle,'Color',params.colors(i,:),'linewidth',params.linewidth);
+    else
+        plot(indx, n1,params.linestyle,'Color',params.colors(i,:),'linewidth',params.linewidth);
+    end
     set(gca,'box','off')
     hold on;
 end
