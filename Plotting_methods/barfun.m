@@ -19,6 +19,7 @@ params.error = 'sde';
 params.colors = [];
 params.barwidth = 1;
 params.test = 'anovan';
+params.range = 0.5;
 
 params = getParams(params,varargin);
 
@@ -35,7 +36,7 @@ end
 if nCols == 1 || nRows ==1
     loc = 1:length(values);
 else
-    loc = bsxfun(@plus,repmat(linspace(0.8,1.2,nCols),nRows,1),(1:nRows)'-1);
+    loc = bsxfun(@plus,repmat(linspace(1-params.range/2,1+params.range/2,nCols),nRows,1),(1:nRows)'-1);
 end
 
 %%%%%% edit for matlab 2014b
@@ -95,27 +96,28 @@ if params.sig
         xd = loc(yind(seq)) - loc(xind(seq));
         uni = unique(xd);
         space = xd;
-        for i = 2:length(uni)
-            pairs = nchoosek(find(xd==uni(i)),2);
-            if size(pairs,2)>1
-                for ipair = 1:size(pairs,1)
-                    [~,xi] = sort(x1(pairs(ipair,:)));
-                    if x1(pairs(ipair,xi(2)))<x2(pairs(ipair,xi(1))) && ...
-                            space(pairs(ipair,xi(2))) == space(pairs(ipair,xi(1)))
-                        indx = false(size(space));
-                        indx(pairs(ipair,xi(2))) = true;
-                        indx(xd>uni(i)) = true;
-                        space(indx) = space(indx)+1;
-                    end
-                end
-            end
-        end
-        
+%         for i = 2:length(uni)
+%             pairs = nchoosek(find(xd==uni(i)),2);
+%             if size(pairs,2)>1
+%                 for ipair = 1:size(pairs,1)
+%                     [~,xi] = sort(x1(pairs(ipair,:)));
+%                     if x1(pairs(ipair,xi(2)))<x2(pairs(ipair,xi(1))) && ...
+%                             space(pairs(ipair,xi(2))) == space(pairs(ipair,xi(1)))
+%                         indx = false(size(space));
+%                         indx(pairs(ipair,xi(2))) = true;
+%                         indx(xd>uni(i)) = true;
+%                         space(indx) = space(indx)+1;
+%                     end
+%                 end
+%             end
+%         end
+%         
         % plot the erros if significant
         if strcmp(params.test,'anovan')
             C = [];
-            for idata = 1:length(data); C = [C;ones(length(data{idata}),1)*idata];end
-            [~,~,stats] = anovan(cell2mat(cellfun(@(x) x(:),data(:),'uni',0)),C,'Display','off');
+            Dat = data(iRow,:);
+            for idata = 1:length(Dat); C = [C;ones(length(Dat{idata}),1)*idata];end
+            [~,~,stats] = anovan(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'Display','off');
             stat = multcompare(stats,'display','off');
         end
         
@@ -140,9 +142,10 @@ if params.sig
             end
         end
     end
+    
+    set(gca,'ylim',[min([0 min(values(:) - 2*errors(:))]) mx+vsp*(nCols+1)])
 end
 
-set(gca,'ylim',[min([0 min(values(:) - 2*errors(:))]) mx+vsp*(nCols+1)])
 set(gca,'Box','Off');
 set(gca,'FontSize',params.fontsize);
 set(gca,'Xtick',1:nRows)
