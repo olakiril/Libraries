@@ -7,7 +7,7 @@ function FWHM = calcResponseWindow(X,fps)
 % INPUT: 
 % X: [time cells]
 % fps: frames per second of the signal
-% OUTPUT: Full width half max in input temporal units
+% OUTPUT: Full width half max
 
 if nargin<2
     fps = 5;
@@ -38,5 +38,5 @@ opts.Upper = [Inf Inf fps*2 Inf Inf Inf]; % first curve cannot have a width of m
 
 % Fit model to data.
 fitresult = fit( xData, yData, ft, opts );
-FWHM = fitresult.c1*2.35482/2; % 2*sqrt(2*log(2))*sigma FWHM of the guassian function. Devide by 2 to account for doubling of the width with the autocorrelation function
+FWHM = fitresult.c1*2.35482/2/fps; % 2*sqrt(2*log(2))*sigma FWHM of the guassian function. Devide by 2 to account for doubling of the width with the autocorrelation function
 
