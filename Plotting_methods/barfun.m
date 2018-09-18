@@ -20,6 +20,7 @@ params.colors = [];
 params.barwidth = 1;
 params.test = 'anovan';
 params.range = 0.5;
+params.edgeColors = [];
 
 params = getParams(params,varargin);
 
@@ -40,21 +41,18 @@ else
 end
 
 %%%%%% edit for matlab 2014b
-%colors = parula(nCols);
-colors = cbrewer('qual','Set2',max([nCols,3]));
+if isempty(params.colors)
+    params.colors = cbrewer('qual','Pastel1',max([nCols,3]));
+end
+if isempty(params.edgeColors)
+    params.edgeColors = repmat('none',nCols,1);
+end
+
 for i = 1:nCols
     handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',params.barwidth/nCols,...
-        'faceColor',colors(i,:),'edgeColor',[1,1,1]); % standard implementation of bar fn
+        'faceColor',params.colors(i,:),'edgeColor',params.edgeColors(i,:)); % standard implementation of bar fn
     hold on
 end
-%%%%%%
-
-if ~isempty(params.colors)
-    for i = 1:nCols
-        set(handles.bar(i),'EdgeColor','none','FaceColor',params.colors(i,:));
-    end
-end
-hold on
 
 if nRows > 1
     %     loc = nan(nRows,nCols);
