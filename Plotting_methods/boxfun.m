@@ -22,14 +22,15 @@ params.barrange = 0.5;
 params.edgeColors = [];
 params.alpha = 0.7;
 params.range = [25 75;10 90;5 95;1 99;0 100];
-params.datacolor = [0.8 0.8 0.8];
+params.datacolor = [1 1 1]*0.8;
 params.linecolor = [1 0 0];
 params.linewidth = 2;
 params.figure = [];
+params.gradient = exp([1 1.5 2 3 5])/2;
+params.rawback = false;
 
 params = getParams(params,varargin);
 
-%%
 if isempty(params.figure)
     figure;
 else
@@ -55,33 +56,43 @@ if isempty(params.edgeColors)
     params.edgeColors = repmat('none',nCols,1);
 end
 
-%%
-gradient = [1 1.6 3 6 20];
-for i = 1:nCols
-    for k = 1:nRows
-    hold on
-    plot(normrnd(0,0.1,length(data{k,i}),1)*params.barwidth + loc(k,i),data{k,i},'.','color',params.datacolor);
-    max_old = values(k,i);
-    min_old = values(k,i);
-    for iarea = 1:size(params.range,1)
-        mins = prctile(data{k,i},params.range(iarea,1));
-        maxs = prctile(data{k,i},params.range(iarea,2));
-        X = [-1 1 1 -1]*params.barwidth/2/gradient(iarea) + loc(k,i);
-        Y = [max_old max_old maxs maxs];
-        patch(X,Y,params.colors(i,:),'edgeColor',params.edgeColors(i,:),'facealpha',params.alpha);
-        Y = [mins mins min_old min_old];
-        patch(X,Y,params.colors(i,:),'edgeColor',params.edgeColors(i,:),'facealpha',params.alpha);
-        max_old = maxs;
-        min_old = mins;
-    end
-    %     handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',params.barwidth/nRows,...
-    %         'faceColor',params.colors(i,:),'edgeColor',params.edgeColors(i,:)); % standard implementation of bar fn
-    plot([-params.barwidth/2 params.barwidth/2] + loc(k,i),[values(i) values(i)],'color',params.linecolor,'linewidth',params.linewidth)
+% plot distribution patch
+for k = 1:nRows
+    for i = 1:nCols
+        
+        hold on
+        try
+        if params.rawback
+            offset = invprctile(data{k,i},data{k,i})/100;
+            offset = 1 - abs(offset - 0.5)/0.5;
+            plot(normrnd(0,0.1,length(data{k,i}),1)*params.barwidth*1.5.*offset+ loc(k,i),data{k,i},'.','color',params.datacolor);
+        end
+        sz = size(params.range,1);
+        a = sort(reshape(arrayfun(@(x) prctile(data{k,i},x),params.range),[],1));
+        idx = sort([1 repmat(2:sz*2-1,1,2) length(a)]);
+        idx = [idx fliplr(idx)];
+        spaces = params.barwidth/2./interp1([-params.gradient fliplr(params.gradient)],linspace(1,length(params.gradient)*2,sz*2));
+        b =[sort(repmat(2:sz,1,2),'desc') 1 1 sort(repmat(2:sz,1,2),'asce') ...
+            sort(repmat(sz+1:sz*2-1,1,2),'asce') sz*2 sz*2  sort(repmat(sz+1:sz*2-1,1,2),'desc')];
+        patch(spaces(b)+ loc(k,i),a(idx)',params.colors(i,:),'edgeColor',params.edgeColors(i,:),'facealpha',params.alpha);
+        end
     end
 end
 
-
-%%
+% plot raw data and median valus
+for i = 1:nCols
+    for k = 1:nRows
+        hold on
+        try
+        if ~params.rawback
+            offset = invprctile(data{k,i},data{k,i})/100;
+            offset = 1 - abs(offset - 0.5)/0.5;
+            plot(normrnd(0,0.1,length(data{k,i}),1)*params.barwidth*1.5.*offset+ loc(k,i),data{k,i},'.','color',params.datacolor);
+        end
+        plot([-params.barwidth/4 params.barwidth/4] + loc(k,i),[values(k,i) values(k,i)],'color',params.colors(i,:)*0.75,'linewidth',params.linewidth)
+        end
+    end
+end
 
 mx = max(reshape(cellfun(@(x) prctile(x,99),data),[],1));
 mn = min(reshape(cellfun(@(x) prctile(x,1),data),[],1));
@@ -142,10 +153,6 @@ if params.sig
             end
         end
     end
-    
-%     set(gca,'ylim',[min([0 min(values(:))]) mx+vsp*(nCols+1)])
-%     ylim([mn - vsp mx+vsp*max(space(iPair))])
-
 end
 
 set(gca,'Box','Off');

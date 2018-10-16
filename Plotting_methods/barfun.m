@@ -42,7 +42,7 @@ end
 
 %%%%%% edit for matlab 2014b
 if isempty(params.colors)
-    params.colors = cbrewer('qual','Pastel1',max([nCols,3]));
+    params.colors = cbrewer('qual','Pastel2',max([nCols,3]));
 end
 if isempty(params.edgeColors)
     params.edgeColors = repmat('none',nCols,1);
@@ -50,8 +50,9 @@ end
 
 for i = 1:nCols
     handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',params.barwidth/nCols,...
-        'faceColor',params.colors(i,:),'edgeColor',params.edgeColors(i,:)); % standard implementation of bar fn
+        'faceColor',params.colors(i,:),'edgeColor',params.edgeColors(i,:),'LineStyle','none'); % standard implementation of bar fn
     hold on
+    handles.bar(i).BaseLine.LineStyle = 'none';
 end
 
 if nRows > 1
@@ -61,11 +62,11 @@ if nRows > 1
         %         loc(:,col) = mean(get(get(handles.bar(col),'children'),'xdata'),1);
         % Use the mean x values to call the standard errorbar fn; the
         % errorbars will now be centred on each bar:
-        errorbar(loc(:,col),values(:,col),errors(:,col), '.','color',[0.3 0.3 0.3])
+        errorbar(loc(:,col),values(:,col),errors(:,col),'linestyle','none','color',[0.3 0.3 0.3],'CapSize',2)
     end
 else
     %     loc = mean(get(get(handles.bar,'children'),'xdata'),1);
-    errorbar(loc,values,errors,'.','color',[0.3 0.3 0.3])
+    errorbar(loc,values,errors,'linestyle','none','color',[0.3 0.3 0.3],'CapSize',2)
 end
 
 mx = max((values(:)) + errors(:));

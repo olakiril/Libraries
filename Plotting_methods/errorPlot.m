@@ -11,7 +11,7 @@ params.style = 'k';
 params.barFunction = 'patch';
 params.errorColor = [0 0 0];
 params.FaceAlpha = .2;
-params.manual = 0;
+params.manual = [];
 params.linestyle = '-';
 params.linewidth = 1;
 
@@ -19,7 +19,7 @@ for i = 1:2:length(varargin)
     params.(varargin{i}) = varargin{i+1};
 end
 
-if ~params.manual
+if isempty(params.manual)
     if strcmpi(params.method,'std')
         err = nanstd(traces);
     elseif strcmpi(params.method,'sem')
