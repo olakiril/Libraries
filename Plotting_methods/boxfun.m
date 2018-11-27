@@ -15,14 +15,14 @@ params.names = [];
 params.angle = 45;
 params.sig = 1;
 params.error = 'sde';
-params.colors = [];
+params.colors = [0.7 0.7 0.72];
 params.barwidth = 0.5;
 params.test = 'anovan';
 params.barrange = 0.5;
 params.edgeColors = [];
 params.alpha = 0.7;
 params.range = [25 75;10 90;5 95;1 99;0 100];
-params.datacolor = [1 1 1]*0.8;
+params.datacolor = [0.5 0.5 0.5];
 params.linecolor = [1 0 0];
 params.linewidth = 2;
 params.figure = [];
@@ -37,18 +37,20 @@ else
     figure(params.figure)
 end
 
-% data = data';
+% convert data to columns
+data = cellfun(@(x) x(:),data,'uni',0);
+[nRows, nCols] = size(data);
+if nCols == 1 || nRows ==1
+    data = reshape(data,length(data),1);
+end
+
 values = cellfun(@nanmedian,data);
 
 [nRows, nCols] = size(values);
+width = params.barwidth/nCols;
+loc = bsxfun(@plus,repmat(linspace(1-params.barrange/2+ width/2,1+params.barrange/2- width/2,nCols),nRows,1),(1:nRows)'-1);
 
-if nCols == 1 || nRows ==1
-    loc = 1:length(values);
-else
-    loc = bsxfun(@plus,repmat(linspace(1-params.barrange/2,1+params.barrange/2,nCols),nRows,1),(1:nRows)'-1);
-end
-
-if isempty(params.colors)
+if isempty(params.colors)  || size(params.colors,1)<nCols
     params.colors = cbrewer('qual','Pastel1',max([nCols,3]));
 end
 
@@ -71,7 +73,7 @@ for k = 1:nRows
         a = sort(reshape(arrayfun(@(x) prctile(data{k,i},x),params.range),[],1));
         idx = sort([1 repmat(2:sz*2-1,1,2) length(a)]);
         idx = [idx fliplr(idx)];
-        spaces = params.barwidth/2./interp1([-params.gradient fliplr(params.gradient)],linspace(1,length(params.gradient)*2,sz*2));
+        spaces =width./interp1([-params.gradient fliplr(params.gradient)],linspace(1,length(params.gradient)*2,sz*2));
         b =[sort(repmat(2:sz,1,2),'desc') 1 1 sort(repmat(2:sz,1,2),'asce') ...
             sort(repmat(sz+1:sz*2-1,1,2),'asce') sz*2 sz*2  sort(repmat(sz+1:sz*2-1,1,2),'desc')];
         patch(spaces(b)+ loc(k,i),a(idx)',params.colors(i,:),'edgeColor',params.edgeColors(i,:),'facealpha',params.alpha);
@@ -84,12 +86,12 @@ for i = 1:nCols
     for k = 1:nRows
         hold on
         try
-        if ~params.rawback
-            offset = invprctile(data{k,i},data{k,i})/100;
-            offset = 1 - abs(offset - 0.5)/0.5;
-            plot(normrnd(0,0.1,length(data{k,i}),1)*params.barwidth*1.5.*offset+ loc(k,i),data{k,i},'.','color',params.datacolor);
-        end
-        plot([-params.barwidth/4 params.barwidth/4] + loc(k,i),[values(k,i) values(k,i)],'color',params.colors(i,:)*0.75,'linewidth',params.linewidth)
+            if ~params.rawback
+                offset = invprctile(data{k,i},data{k,i})/100;
+                offset = 1 - abs(offset - 0.5)/0.5;
+                plot(normrnd(0,0.1,length(data{k,i}),1)*params.barwidth*1.5.*offset+ loc(k,i),data{k,i},'.','color',params.datacolor,'markersize',params.markersize);
+            end
+            plot([-width width]/2 + loc(k,i),[values(k,i) values(k,i)],'color',params.colors(i,:)*0.5,'linewidth',params.linewidth)
         end
     end
 end

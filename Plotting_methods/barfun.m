@@ -16,13 +16,20 @@ params.angle = 45;
 params.sig = 1;
 params.bar = 1;
 params.error = 'sde';
-params.colors = [];
-params.barwidth = 1;
+params.colors = [0.7 0.7 0.72];
+params.barwidth = 0.9;
 params.test = 'anovan';
-params.range = 0.5;
+params.range = 0.9;
 params.edgeColors = [];
 
 params = getParams(params,varargin);
+
+% convert data to columns
+data = cellfun(@(x) x(:),data,'uni',0);
+[nRows, nCols] = size(data);
+if nCols == 1 || nRows ==1
+    data = reshape(data,length(data),1);
+end
 
 % data = data';
 values = cellfun(@nanmean,data);
@@ -33,23 +40,18 @@ elseif  strcmp(params.error,'std')
 end
 
 [nRows, nCols] = size(values);
+width = params.barwidth/nCols;
+loc = bsxfun(@plus,repmat(linspace(1-params.range/2 + width/2,1+params.range/2 -width/2,nCols),nRows,1),(1:nRows)'-1);
 
-if nCols == 1 || nRows ==1
-    loc = 1:length(values);
-else
-    loc = bsxfun(@plus,repmat(linspace(1-params.range/2,1+params.range/2,nCols),nRows,1),(1:nRows)'-1);
-end
-
-%%%%%% edit for matlab 2014b
-if isempty(params.colors)
-    params.colors = cbrewer('qual','Pastel2',max([nCols,3]));
+if isempty(params.colors) || size(params.colors,1)<nCols
+    params.colors = cbrewer('qual','Pastel1',max([nCols,3]));
 end
 if isempty(params.edgeColors)
     params.edgeColors = repmat('none',nCols,1);
 end
 
 for i = 1:nCols
-    handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',params.barwidth/nCols,...
+    handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',width,...
         'faceColor',params.colors(i,:),'edgeColor',params.edgeColors(i,:),'LineStyle','none'); % standard implementation of bar fn
     hold on
     handles.bar(i).BaseLine.LineStyle = 'none';
@@ -152,13 +154,6 @@ if nRows==1
 else
     set(gca,'Xtick',1:nRows)
 end
-if ~isempty(params.names)
-    set(gca,'XTickLabel',params.names)
-%     if nCols==1
-        ht = xticklabel_rotate([],params.angle,[]);
-        set(ht,'HorizontalAlignment','right')
-%     end
-end
 
 if ~params.bar
     delete(handles.bar)
@@ -166,6 +161,10 @@ if ~params.bar
     set(gca,'xtick',1:length(values))
 end
 hold off
+
+if ~isempty(params.names)
+    set(gca,'XTickLabel',params.names,'XTickLabelRotation',params.angle)
+end
 
 if nargout
     hout = handles.bar;
