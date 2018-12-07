@@ -1,4 +1,4 @@
-function [hOUT, mOUT, pOUT] = scatterhist1(A,B,varargin)
+function hOUT = scatterhist1(A,B,varargin)
 
 % function scatterhist1(A,B,varargin)
 %
@@ -10,27 +10,39 @@ function [hOUT, mOUT, pOUT] = scatterhist1(A,B,varargin)
 % variable params
 params.midlinecolor = [0.5 0.5 0.5];
 params.midlinewidth = 1;
-params.markersize = 2;
+params.markersize = 20;
 params.markertype = 'O';
-params.MarkerEdgeColor = [0.2 0.2 0.2];
-params.MarkerFaceColor = [0.2 0.2 0.2];
+params.MarkerEdgeColor = 'none';
+params.color = [0.2 0.2 0.2];
+params.names = [{''},{''}];
+params.maxbin = 40;
+params.title = '';
+params.fontsize = 10;
+params.diagtype = '--';
+params.meantype = '-';
+params.constrict = []; % take a % of the data.
+params.heightgain = 2;
+params.figure = [];
+params.reduce = 1;
+params.ticks = [];
+params.boxplot = false;
+params.MarkerFaceAlpha = 0.5;
+
+% hist params
 params.histcolor = [0.5 0.5 0.5];
 params.histedgecolor = 'none';
 params.difcolor = [1 0 0];
 params.thr = 0.05;
-params.names = [{''},{''}];
-params.maxbin = 40;
-params.title = '';
-params.fontsize = 7;
-params.diagtype = '-';
-params.meantype = '-';
-params.constrict = []; % take a % of the data.
-params.heightgain = 5;
-params.figure = [];
 params.test = 'ttest';
-params.reduce = 1.2;
-params.ticks = [];
-params.boxplot = false;
+
+% assign groups if 3 input is not a parameter
+if nargin>2 && ~(isstring(varargin{1}) || ischar(varargin{1}))
+    Groups = varargin{1};
+    varargin = varargin(2:end);
+else
+    Groups = ones(size(A));
+end
+un_group = unique(Groups);
 
 for i = 1:2:length(varargin)
     params.(varargin{i}) = varargin{i+1};
@@ -38,17 +50,21 @@ end
 
 if params.boxplot; params.reduce = params.reduce+0.2;end
 
+% check colors to match group number
+if isempty(params.color)  || size(params.color,1)<length(un_group)
+    params.color = cbrewer('qual','Pastel1',max([length(un_group),3]));
+end
+if isempty(params.histcolor)  || size(params.histcolor,1)<length(un_group)
+    params.histcolor = params.color;
+end
+if isempty(params.difcolor)  || size(params.difcolor,1)<length(un_group)
+    params.difcolor = params.color*0.8;
+end
+
 % non variable size params
 left_margin = 0.15;      % normalized left margin for scatter plot
 bottom_margin = 0.15;    % normalized bottom margin for scatter plot
 expansion = 0.5*(params.reduce^(1/3));         % normalized width and height of scatter plot
-
-roundAll = @(x) round(x*10^abs(floor(log10(x))))/10^abs(floor(log10(x)));
-
-% remove nans & infs
-idx = ~isnan(A) & ~isnan(B) & ~isinf(A) & ~isinf(B);
-A = A(idx);
-B = B(idx);
 
 % make sure vectors have the proper size and type
 A = double(reshape(A,numel(A),1));
@@ -58,24 +74,17 @@ B = double(reshape(B,numel(B),1));
 if params.constrict
     uth = prctile([A(:);B(:)],params.constrict);
     lth = prctile([A(:);B(:)],100 - params.constrict);
-    i = A < uth & A > lth ...
-        & B < uth & B > lth;
+    i = A < uth & A > lth & B < uth & B > lth;
     A = A(i);
     B = B(i);
-end
-
-% check if point of calling this function is to test the significance
-if nargout>1
-    hOUT = [];
-    mOUT = mean(A - B);
-    pOUT = ttest(A - B,0,params.thr);
-    return
 end
 
 % create figure
 if isempty(params.figure)
     f = figure;
-    set(f,'Name',params.title,'position',[200,200,500,500])
+%     set(f,'Name',params.title,'position',[200,200,500,500])
+    set(f,'position',[200,200,500,500])
+
 else
     f = params.figure;
 end
@@ -83,8 +92,12 @@ set(gcf,'Color',[1 1 1])
 
 %% scatter plot
 h = subplot(223);
-plot(A,B,params.markertype,'markersize',params.markersize,...
-    'MarkerEdgeColor',params.MarkerEdgeColor,'MarkerFaceColor',params.MarkerFaceColor);
+hold on
+for igroup = 1:length(un_group)
+    group_idx = Groups==un_group(igroup);
+    scatter(A(group_idx),B(group_idx),'filled',params.markertype,'SizeData',params.markersize,...
+        'MarkerEdgeColor','none','MarkerFaceColor',params.color(igroup,:),'MarkerFaceAlpha',params.MarkerFaceAlpha);
+end
 
 mn = min([A; B]); mx = max([A; B]);
 set(gca,'Xlim',[mn*params.reduce mx*params.reduce],'YLim',[mn*params.reduce mx*params.reduce]);
@@ -99,19 +112,30 @@ set(h,'Position',[pos(1),pos(2),...
 hold on
 plot([mn*params.reduce mx*params.reduce],[mn*params.reduce mx*params.reduce],...
     params.diagtype,'Color',params.midlinecolor,'LineWidth',params.midlinewidth);
+axis square
+grid on
 
 %% histogram
 h(2) = subplot(222);
+hold on
 difrange = (max((A - B)) - min(A - B))*params.heightgain/(mx - mn);
 bin = round(difrange*params.maxbin/(2*params.heightgain));
-hist(A - B,bin);
-cnt = hist(A - B,bin);
+cnt = [];
+for igroup = 1:length(un_group)
+    group_idx = Groups==un_group(igroup);
+    hh = histogram(A(group_idx) - B(group_idx),bin);
+    set(hh,'FaceColor',params.histcolor(igroup,:),'EdgeColor',params.histedgecolor)
+    cnt{igroup} = hh.Values;
+end
+cnt = [cnt{:}];
+plot([0 0],[0 1]*max(cnt)*1.2,params.diagtype,'Color',params.midlinecolor,'LineWidth',params.midlinewidth)
 lim = get(h(2),'YLim');
 set(gca,'XLim',[-max(abs(A - B)) max(abs(A - B))],...
     'YLim',[lim(1) lim(2)*(difrange)],'YColor',[1 1 1]);% equalize axis & reduce y axis
 camorbit(45,0,'data',[0 0 1]);
 
 %% get proper position
+
 set(h(1),'position',[left_margin bottom_margin expansion expansion])
 pos = get(h(1),'position');
 w2 = 4 * max(abs(A - B)) * pos(3) / ((mx - mn) * 2);
@@ -120,69 +144,54 @@ set(h(2),'Position',[pos(1) + pos(3) - w2/4,...
     'YTick',round(max(cnt)/10)*10,'YTickLabel',[],'box','off','YAxisLocation','right',...
     'xtick',[],'ytick',[],'tickdir','out','xcolor',[1 1 1],'tickdir','in')
 
-
 %% plot extra stuff on histogram
-h(3) = findobj(gca,'Type','patch');
-set(h(3),'FaceColor',params.histcolor,'EdgeColor',params.histedgecolor)
 hold on;
-plot([0 0],get(h(2),'YLim'),params.diagtype,'Color',params.midlinecolor,'LineWidth',params.midlinewidth) % midline
-plot([mean(A - B) mean(A - B)],[0 max(cnt) * 1.2],params.meantype,'LineWidth',params.midlinewidth,...
-    'color',params.difcolor) %diff
+for igroup = 1:length(un_group)
+    group_idx = Groups==un_group(igroup);
+    plot([1 1]*nanmean(A(group_idx) - B(group_idx)),[0 max(cnt) * 1.2],params.meantype,...
+        'LineWidth',params.midlinewidth,'color',params.difcolor(igroup,:)) % mean diff line
+end
 axis off
 count = ceil(max(cnt)/2);
 offset = max(cnt)/4;
-textpos = max(A - B);
-text(textpos,offset+count/2, num2str(count),...
+text(max(A - B),offset+count/2, num2str(count),...
     'FontSize',params.fontsize,'rotation',45,...
     'HorizontalAlignment','center','VerticalAlignment','top')
 barpos = max(A - B)-0.01*(max(A - B)-min(A - B));
 plot([barpos barpos],[offset offset+count],'color',[0 0 0])
 
-%% mask the extra axis
-plot([0 0],[max(cnt)*1.2 lim(2)*difrange],'Color',[1 1 1],'linewidth',4);
-% plot([max((A - B))*1.03 max((A - B))*1.03],[0 max(cnt)*1.2 ],...
-%     'color',[0 0 0],'linewidth',1);
-% plot([max((A - B))*1.03 max((A - B))*1.07],[max(cnt) max(cnt)],...
-%     'color',[0 0 0],'linewidth',1);
-% plot([min((A - B)) max((A - B))*1.03],[0 0],'-k')
-
 %% Significance addons
-eval(['[t, p] = ' params.test '(A - B,0,params.thr);']);
-if  t == 1
-    if p<=0.001
-        stars = '***';
-    elseif p <=0.01 && p>0.001
-        stars = '**';
-    else
-        stars = '*';
+for igroup = 1:length(un_group)
+    group_idx = Groups==un_group(igroup);
+    mDif = nanmean(A(group_idx) - B(group_idx));
+    eval(['[t, p] = ' params.test '(A(group_idx) - B(group_idx),0,params.thr);']);
+    if  t == 1
+        if p<=0.001; stars = '***'; elseif p <=0.01 && p>0.001;stars = '**'; else; stars = '*'; end
+        set(gcf,'CurrentAxes',h(2))
+
+        % mean difference
+        text(mDif,-max(cnt)*0.1, num2str(roundsd(mDif,2)),...
+            'FontSize',params.fontsize,'rotation',45,...
+            'HorizontalAlignment','right','VerticalAlignment','middle','color',params.difcolor(igroup,:))
+
+        plot([0 0 mDif mDif],[max(cnt)*1.3 max(cnt)*1.4 max(cnt)*1.4 max(cnt)*1.3],'-k')
+        text(mDif/2,max(cnt)*1.5,stars ,'FontSize',params.fontsize,...
+            'rotation',-45,'HorizontalAlignment','center','VerticalAlignment','bottom')
     end
-%     text(1.15,0.25, ['*p < ' num2str(params.thr)],...
-%         'FontSize',params.fontsize,'HorizontalAlignment','left','units','normalized')
-    set(gcf,'CurrentAxes',h(2))
-    
-    % mean difference
-    text(mean(A - B),-max(cnt)*0.1, num2str(roundsd(mean(A - B),2)),...
-        'FontSize',params.fontsize,'rotation',45,...
-        'HorizontalAlignment','right','VerticalAlignment','middle','color',[0 0 0])
-    
-    plot([0 0 mean(A - B) mean(A - B)],[max(cnt)*1.3 max(cnt)*1.4 max(cnt)*1.4 max(cnt)*1.3],'-k')
-    text(mean(A - B)/2,max(cnt)*1.5,stars ,'FontSize',params.fontsize,...
-        'rotation',-45,'HorizontalAlignment','center','VerticalAlignment','bottom')
 end
 
 %% Labels
 % Title
 axes('Parent', f, 'Units', 'normalized','Position', [0, 0, 1, 1],...
     'Visible', 'off','XLim', [0, 1],'YLim', [0, 1],'NextPlot', 'add');
-htitle = text(0.5,0.9,params.title,'FontSize',params.fontsize * 1.2,'fontweight','bold',...
+htitle = text(0.5,0.9,params.title,'FontSize',params.fontsize * 1.5,'fontweight','bold',...
     'HorizontalAlignment','center','units','normalized','VerticalAlignment', 'top');
 
 % X axes labels
 set(gcf,'CurrentAxes',h(1))
-text(0.5,-0.15,params.names{1},'FontSize',params.fontsize,...
-    'HorizontalAlignment','center','units','normalized')
-text(-0.15,0.5,params.names{2},'FontSize',params.fontsize,...
-    'HorizontalAlignment','center','rotation',90,'units','normalized')
+xlabel(params.names{1},'FontSize',params.fontsize*1.2)
+ylabel(params.names{2},'FontSize',params.fontsize*1.2)
+
 set(gca,'Ytick',get(gca,'Xtick'),'yticklabel',get(gca,'xticklabel'))
 
 %% boxplot

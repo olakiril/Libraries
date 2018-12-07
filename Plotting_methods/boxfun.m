@@ -10,23 +10,23 @@ function hout = boxfun(data,varargin)
 
 params.thr = 0.05;
 params.fontsize = 12;
-params.markersize = 0.5;
+params.markersize = 1;
 params.names = [];
 params.angle = 45;
 params.sig = 1;
 params.error = 'sde';
 params.colors = [0.7 0.7 0.72];
-params.barwidth = 0.5;
+params.barwidth =0.9;
 params.test = 'anovan';
-params.barrange = 0.5;
+params.range = 0.75;
 params.edgeColors = [];
 params.alpha = 0.7;
-params.range = [25 75;10 90;5 95;1 99;0 100];
+params.barranges = [25 75;10 90;5 95;1 99;0 100];
 params.datacolor = [0.5 0.5 0.5];
 params.linecolor = [1 0 0];
 params.linewidth = 2;
 params.figure = [];
-params.gradient = exp([1 1.5 2 3 5])/2;
+params.gradient = 1./[1 1.8 3.5 8 50];
 params.rawback = false;
 
 params = getParams(params,varargin);
@@ -47,8 +47,8 @@ end
 values = cellfun(@nanmedian,data);
 
 [nRows, nCols] = size(values);
-width = params.barwidth/nCols;
-loc = bsxfun(@plus,repmat(linspace(1-params.barrange/2+ width/2,1+params.barrange/2- width/2,nCols),nRows,1),(1:nRows)'-1);
+width = params.range*params.barwidth/nCols;
+loc = bsxfun(@plus,repmat(linspace(1-params.range/2+ width/2,1+params.range/2- width/2,nCols),nRows,1),(1:nRows)'-1);
 
 if isempty(params.colors)  || size(params.colors,1)<nCols
     params.colors = cbrewer('qual','Pastel1',max([nCols,3]));
@@ -59,40 +59,25 @@ if isempty(params.edgeColors)
 end
 
 % plot distribution patch
+hand = [];
 for k = 1:nRows
     for i = 1:nCols
-        
         hold on
-        try
         if params.rawback
-            offset = invprctile(data{k,i},data{k,i})/100;
-            offset = 1 - abs(offset - 0.5)/0.5;
-            plot(normrnd(0,0.1,length(data{k,i}),1)*params.barwidth*1.5.*offset+ loc(k,i),data{k,i},'.','color',params.datacolor);
+            plotrawdata;
         end
-        sz = size(params.range,1);
-        a = sort(reshape(arrayfun(@(x) prctile(data{k,i},x),params.range),[],1));
+        sz = size(params.barranges,1);
+        a = sort(reshape(arrayfun(@(x) prctile(data{k,i},x),params.barranges),[],1));
         idx = sort([1 repmat(2:sz*2-1,1,2) length(a)]);
         idx = [idx fliplr(idx)];
-        spaces =width./interp1([-params.gradient fliplr(params.gradient)],linspace(1,length(params.gradient)*2,sz*2));
+        spaces =width.*interp1([-params.gradient fliplr(params.gradient)],linspace(1,length(params.gradient)*2,sz*2))/2;
         b =[sort(repmat(2:sz,1,2),'desc') 1 1 sort(repmat(2:sz,1,2),'asce') ...
             sort(repmat(sz+1:sz*2-1,1,2),'asce') sz*2 sz*2  sort(repmat(sz+1:sz*2-1,1,2),'desc')];
-        patch(spaces(b)+ loc(k,i),a(idx)',params.colors(i,:),'edgeColor',params.edgeColors(i,:),'facealpha',params.alpha);
+        hand(i) = patch(spaces(b)+ loc(k,i),a(idx)',params.colors(i,:),'edgeColor',params.edgeColors(i,:),'facealpha',params.alpha);
+        if ~params.rawback
+            plotrawdata;
         end
-    end
-end
-
-% plot raw data and median valus
-for i = 1:nCols
-    for k = 1:nRows
-        hold on
-        try
-            if ~params.rawback
-                offset = invprctile(data{k,i},data{k,i})/100;
-                offset = 1 - abs(offset - 0.5)/0.5;
-                plot(normrnd(0,0.1,length(data{k,i}),1)*params.barwidth*1.5.*offset+ loc(k,i),data{k,i},'.','color',params.datacolor,'markersize',params.markersize);
-            end
-            plot([-width width]/2 + loc(k,i),[values(k,i) values(k,i)],'color',params.colors(i,:)*0.5,'linewidth',params.linewidth)
-        end
+        plot([-width width]/2+ loc(k,i),[values(k,i) values(k,i)],'color',params.colors(i,:)*0.75,'linewidth',params.linewidth)
     end
 end
 
@@ -170,14 +155,27 @@ if ~isempty(params.names)
     set(ht,'HorizontalAlignment','right')
 end
 
+if nargout
+    hout = hand;
+end
 hold off
 
-function ast = pval(p)
-if p<0.001
-    ast = '***';
-elseif p<0.01
-    ast = '**';
-else ast = '*';
+
+    function ast = pval(p)
+        if p<0.001
+            ast = '***';
+        elseif p<0.01
+            ast = '**';
+        else ast = '*';
+        end
+    end
+
+    function plotrawdata
+        offset = invprctile(data{k,i},data{k,i})/100;
+        offset = 1 - abs(offset - 0.5)/0.5;
+        plot(min(width/2,max(-width/2,normrnd(0,0.2,length(data{k,i}),1)*width)).*offset+ loc(k,i),data{k,i},...
+            '.','color',params.datacolor(i,:),'markersize',params.markersize);
+        
+    end
+
 end
-
-

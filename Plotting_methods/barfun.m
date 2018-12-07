@@ -21,6 +21,7 @@ params.barwidth = 0.9;
 params.test = 'anovan';
 params.range = 0.9;
 params.edgeColors = [];
+params.average = 'nanmean';
 
 params = getParams(params,varargin);
 
@@ -32,11 +33,21 @@ if nCols == 1 || nRows ==1
 end
 
 % data = data';
-values = cellfun(@nanmean,data);
+values = eval(sprintf('cellfun(@%s,data)',params.average));
 if strcmp(params.error,'sde')
-    errors = cellfun(@(x) nanstd(x)/sqrt(length(x)),data);
+    errorsU = cellfun(@(x) nanstd(x)/sqrt(length(x)),data);
+    errorsL = -errorsU;
 elseif  strcmp(params.error,'std')
-    errors = cellfun(@(x) nanstd(x),data);
+    errorsU = cellfun(@(x) nanstd(x),data);
+       errorsL = -errorsU;
+elseif strcmp(params.error,'medianci')
+    for x = 1:size(data,1)
+        for y = 1:size(data,2)
+            [errorsU(x,y), errorsL(x,y)] = medianci(data{x,y},0.90);
+            errorsL(x,y) = errorsL(x,y) - nanmedian(data{x,y});
+            errorsU(x,y) = errorsU(x,y) - nanmedian(data{x,y});
+        end
+    end
 end
 
 [nRows, nCols] = size(values);
@@ -64,16 +75,16 @@ if nRows > 1
         %         loc(:,col) = mean(get(get(handles.bar(col),'children'),'xdata'),1);
         % Use the mean x values to call the standard errorbar fn; the
         % errorbars will now be centred on each bar:
-        errorbar(loc(:,col),values(:,col),errors(:,col),'linestyle','none','color',[0.3 0.3 0.3],'CapSize',2)
+        errorbar(loc(:,col),values(:,col),errorsL(:,col),errorsU(:,col),'linestyle','none','color',[0.3 0.3 0.3],'CapSize',2)
     end
 else
     %     loc = mean(get(get(handles.bar,'children'),'xdata'),1);
-    errorbar(loc,values,errors,'linestyle','none','color',[0.3 0.3 0.3],'CapSize',2)
+    errorbar(loc,values,errorsL,errorsU,'linestyle','none','color',[0.3 0.3 0.3],'CapSize',2)
 end
 
-mx = max((values(:)) + errors(:));
+mx = max((values(:)) + errorsU(:));
 if params.bar;mx = max([0 mx]);end
-vsp = ( max(abs(values(:)) + errors(:)))*0.1;
+vsp = ( max(abs(values(:)) + errorsU(:)))*0.1;
 if params.sig
     df =  mean(mean(diff(loc')));
     hsp = df*0.1;
@@ -123,12 +134,16 @@ if params.sig
         end
         
         for iPair = 1:length(seq)
-            if ~strcmp(params.test,'anovan')
-                [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
-                    'data{iRow,yind(seq(iPair))},params.thr)']);
-            else
-               p = stat(stat(:,1)==xind(seq(iPair)) & stat(:,2)==yind(seq(iPair)),6);
+            if strcmp(params.test,'anovan')
+                     p = stat(stat(:,1)==xind(seq(iPair)) & stat(:,2)==yind(seq(iPair)),6);
                sig = p<params.thr;
+            elseif any(strcmp(params.test,{'ranksum','signrank'}))
+                    p = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+                    'data{iRow,yind(seq(iPair))})']);
+                    sig = p<params.thr;
+            else
+               [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+                    'data{iRow,yind(seq(iPair))},params.thr)']);
             end
             
             if ~isnan(sig) && sig
@@ -144,7 +159,7 @@ if params.sig
         end
     end
     
-    set(gca,'ylim',[min([0 min(values(:) - 2*errors(:))]) mx+vsp*(nCols+1)])
+    set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+vsp*(nCols+1)])
 end
 
 set(gca,'Box','Off');
