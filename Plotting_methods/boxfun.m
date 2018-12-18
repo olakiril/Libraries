@@ -50,12 +50,17 @@ values = cellfun(@nanmedian,data);
 width = params.range*params.barwidth/nCols;
 loc = bsxfun(@plus,repmat(linspace(1-params.range/2+ width/2,1+params.range/2- width/2,nCols),nRows,1),(1:nRows)'-1);
 
-if isempty(params.colors)  || size(params.colors,1)<nCols
-    params.colors = cbrewer('qual','Pastel1',max([nCols,3]));
+ncolors = nCols;if nCols==1;ncolors=nRows;end
+if isempty(params.colors)  || size(params.colors,1)<ncolors
+    params.colors = cbrewer('qual','Pastel1',max([ncolors,3]));
 end
 
 if isempty(params.edgeColors)
-    params.edgeColors = repmat('none',nCols,1);
+    params.edgeColors = repmat('none',ncolors,1);
+end
+
+if isempty(params.datacolor)  || size(params.datacolor,1)<ncolors
+	params.datacolor = repmat(params.datacolor,ncolors,1);
 end
 
 % plot distribution patch
@@ -63,9 +68,8 @@ hand = [];
 for k = 1:nRows
     for i = 1:nCols
         hold on
-        if params.rawback
-            plotrawdata;
-        end
+        if nCols==1; icolor=k;else;icolor=i;end
+        if params.rawback; plotrawdata; end
         sz = size(params.barranges,1);
         a = sort(reshape(arrayfun(@(x) prctile(data{k,i},x),params.barranges),[],1));
         idx = sort([1 repmat(2:sz*2-1,1,2) length(a)]);
@@ -73,11 +77,9 @@ for k = 1:nRows
         spaces =width.*interp1([-params.gradient fliplr(params.gradient)],linspace(1,length(params.gradient)*2,sz*2))/2;
         b =[sort(repmat(2:sz,1,2),'desc') 1 1 sort(repmat(2:sz,1,2),'asce') ...
             sort(repmat(sz+1:sz*2-1,1,2),'asce') sz*2 sz*2  sort(repmat(sz+1:sz*2-1,1,2),'desc')];
-        hand(i) = patch(spaces(b)+ loc(k,i),a(idx)',params.colors(i,:),'edgeColor',params.edgeColors(i,:),'facealpha',params.alpha);
-        if ~params.rawback
-            plotrawdata;
-        end
-        plot([-width width]/2+ loc(k,i),[values(k,i) values(k,i)],'color',params.colors(i,:)*0.75,'linewidth',params.linewidth)
+        hand(i) = patch(spaces(b)+ loc(k,i),a(idx)',params.colors(icolor,:),'edgeColor',params.edgeColors(icolor,:),'facealpha',params.alpha);
+        if ~params.rawback; plotrawdata; end
+        plot([-width width]/2+ loc(k,i),[values(k,i) values(k,i)],'color',params.colors(icolor,:)*0.75,'linewidth',params.linewidth)
     end
 end
 
@@ -174,7 +176,7 @@ hold off
         offset = invprctile(data{k,i},data{k,i})/100;
         offset = 1 - abs(offset - 0.5)/0.5;
         plot(min(width/2,max(-width/2,normrnd(0,0.2,length(data{k,i}),1)*width)).*offset+ loc(k,i),data{k,i},...
-            '.','color',params.datacolor(i,:),'markersize',params.markersize);
+            '.','color',params.datacolor(icolor,:),'markersize',params.markersize);
         
     end
 

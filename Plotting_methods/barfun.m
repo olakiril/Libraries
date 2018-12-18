@@ -22,6 +22,7 @@ params.test = 'anovan';
 params.range = 0.9;
 params.edgeColors = [];
 params.average = 'nanmean';
+params.alpha = 1;
 
 params = getParams(params,varargin);
 
@@ -54,18 +55,23 @@ end
 width = params.barwidth/nCols;
 loc = bsxfun(@plus,repmat(linspace(1-params.range/2 + width/2,1+params.range/2 -width/2,nCols),nRows,1),(1:nRows)'-1);
 
-if isempty(params.colors) || size(params.colors,1)<nCols
-    params.colors = cbrewer('qual','Pastel1',max([nCols,3]));
+ncolors = nCols;if nCols==1;ncolors=nRows;end
+if isempty(params.colors) || size(params.colors,1)<ncolors
+    params.colors = cbrewer('qual','Pastel1',max([ncolors,3]));
 end
 if isempty(params.edgeColors)
-    params.edgeColors = repmat('none',nCols,1);
+    params.edgeColors = repmat('none',ncolors,1);
 end
 
 for i = 1:nCols
-    handles.bar(i) = bar(loc(:,i),values(:,i),'barwidth',width,...
-        'faceColor',params.colors(i,:),'edgeColor',params.edgeColors(i,:),'LineStyle','none'); % standard implementation of bar fn
-    hold on
-    handles.bar(i).BaseLine.LineStyle = 'none';
+    for k = 1:nRows
+        if nCols==1; icolor=k;else;icolor=i;end
+        handles.bar(i,k) = bar(loc(k,i),values(k,i),'barwidth',width,...
+            'faceColor',params.colors(icolor,:),'edgeColor',params.edgeColors(icolor,:),...
+            'LineStyle','none','FaceAlpha',params.alpha); % standard implementation of bar fn
+        hold on
+        handles.bar(i,k).BaseLine.LineStyle = 'none';
+    end
 end
 
 if nRows > 1
