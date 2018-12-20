@@ -23,6 +23,7 @@ params.range = 0.9;
 params.edgeColors = [];
 params.average = 'nanmean';
 params.alpha = 1;
+params.prc = 0.9;
 
 params = getParams(params,varargin);
 
@@ -44,7 +45,7 @@ elseif  strcmp(params.error,'std')
 elseif strcmp(params.error,'medianci')
     for x = 1:size(data,1)
         for y = 1:size(data,2)
-            [errorsU(x,y), errorsL(x,y)] = medianci(data{x,y},0.90);
+            [errorsU(x,y), errorsL(x,y)] = medianci(data{x,y},params.prc);
             errorsL(x,y) = errorsL(x,y) - nanmedian(data{x,y});
             errorsU(x,y) = errorsU(x,y) - nanmedian(data{x,y});
         end
