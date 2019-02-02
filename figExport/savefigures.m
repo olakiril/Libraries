@@ -16,10 +16,10 @@ end
 
 if ~nargin || isa(type,'matlab.ui.Figure')
     type = '-dpng';
-else
-    if ~isnumeric(type)
-        nofig = 1;
-    end
+end
+
+if nargin<3
+    nofig = 1;
 end
 
 for ifig = 1:length(figH)
@@ -34,9 +34,15 @@ for ifig = 1:length(figH)
 
     set(figH(ifig),'PaperPositionMode','auto')
 
-    saveas(figH(ifig),name,type)
+    if iscell(type)
+        for itype = 1:length(type)
+            saveas(figH(ifig),name,type{itype})
+        end
+    else
+        saveas(figH(ifig),name,type)
+    end
 %     print(figH(ifig),type,name)
-    if ~ exist('nofig','var')
+    if ~nofig
         saveas(figH(ifig),name,'fig')
     end
 end

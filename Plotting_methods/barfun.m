@@ -1,4 +1,4 @@
-function hout = barfun(data,varargin)
+function [hout,values,errorsL,errorsU]= barfun(data,varargin)
 
 % function barfun(data,varargin)
 %
@@ -97,6 +97,7 @@ if params.sig
     hsp = df*0.1;
     if nCols==1
         data = data';
+        loc = loc';
         [nRows, nCols] = size(data);
     end
     for iRow = 1:nRows
