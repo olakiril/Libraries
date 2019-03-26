@@ -2,7 +2,7 @@ function angle = diangle(data, dim)
 
 % function angle = diangle(data)
 %
-% calculates the angle from the diagonal 
+% calculates the angle from the diagonal in degrees
 
 if nargin<2 || isempty(dim) 
     dim = 1;
