@@ -41,7 +41,7 @@ if strcmp(params.error,'sde')
     errorsL = -errorsU;
 elseif  strcmp(params.error,'std')
     errorsU = cellfun(@(x) nanstd(x),data);
-       errorsL = -errorsU;
+    errorsL = -errorsU;
 elseif strcmp(params.error,'medianci')
     for x = 1:size(data,1)
         for y = 1:size(data,2)
@@ -90,6 +90,7 @@ else
 end
 
 mx = max((values(:)) + errorsU(:));
+sp_update =  max(abs((values(:)) + errorsU(:)))*0.01;
 if params.bar;mx = max([0 mx]);end
 vsp = ( max(abs(values(:)) + errorsU(:)))*0.1;
 if params.sig
@@ -101,12 +102,15 @@ if params.sig
         [nRows, nCols] = size(data);
     end
     for iRow = 1:nRows
-        [~,seq] = sort(pdist(reshape(loc(iRow,:),[],1)));
-        
+        %         [~,seq] = sort(pdist(reshape(loc(iRow,:),[],1)));
+        %
+        seq = nchoosek(size(loc,2),2):-1:1;
         if nCols>2
             idx =squareform(1:length(seq));
             idx(logical(tril(ones(nCols),-1))) = 0;
             [xind, yind]= find(idx);
+            [xind,x_sort] = sort(xind);
+            yind = yind(x_sort);
         else xind = 1;yind =2;
         end
         
@@ -116,58 +120,72 @@ if params.sig
         xd = loc(yind(seq)) - loc(xind(seq));
         uni = unique(xd);
         space = xd;
-%         for i = 2:length(uni)
-%             pairs = nchoosek(find(xd==uni(i)),2);
-%             if size(pairs,2)>1
-%                 for ipair = 1:size(pairs,1)
-%                     [~,xi] = sort(x1(pairs(ipair,:)));
-%                     if x1(pairs(ipair,xi(2)))<x2(pairs(ipair,xi(1))) && ...
-%                             space(pairs(ipair,xi(2))) == space(pairs(ipair,xi(1)))
-%                         indx = false(size(space));
-%                         indx(pairs(ipair,xi(2))) = true;
-%                         indx(xd>uni(i)) = true;
-%                         space(indx) = space(indx)+1;
-%                     end
-%                 end
-%             end
-%         end
-%         
+        %         for i = 2:length(uni)
+        %             pairs = nchoosek(find(xd==uni(i)),2);
+        %             if size(pairs,2)>1
+        %                 for ipair = 1:size(pairs,1)
+        %                     [~,xi] = sort(x1(pairs(ipair,:)));
+        %                     if x1(pairs(ipair,xi(2)))<x2(pairs(ipair,xi(1))) && ...
+        %                             space(pairs(ipair,xi(2))) == space(pairs(ipair,xi(1)))
+        %                         indx = false(size(space));
+        %                         indx(pairs(ipair,xi(2))) = true;
+        %                         indx(xd>uni(i)) = true;
+        %                         space(indx) = space(indx)+1;
+        %                     end
+        %                 end
+        %             end
+        %         end
+        %
         % plot the erros if significant
-        if strcmp(params.test,'anovan')
+        if any(strcmp(params.test,{'anovan','kruskalwallis'}))
             C = [];
             Dat = data(iRow,:);
             for idata = 1:length(Dat); C = [C;ones(length(Dat{idata}),1)*idata];end
-            [~,~,stats] = anovan(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'Display','off');
+            if strcmp(params.test,'anovan')
+                [~,~,stats] = anovan(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'Display','off');
+            elseif strcmp(params.test,'kruskalwallis')
+                [~,~,stats] = kruskalwallis(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'off');
+            end
             stat = multcompare(stats,'display','off');
         end
         
+        sp = sp_update;
         for iPair = 1:length(seq)
-            if strcmp(params.test,'anovan')
-                     p = stat(stat(:,1)==xind(seq(iPair)) & stat(:,2)==yind(seq(iPair)),6);
-               sig = p<params.thr;
+            if any(strcmp(params.test,{'anovan','kruskalwallis'}))
+                p = stat(stat(:,1)==xind(seq(iPair)) & stat(:,2)==yind(seq(iPair)),6);
+                sig = p<params.thr;
             elseif any(strcmp(params.test,{'ranksum','signrank'}))
-                    p = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+                p = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
                     'data{iRow,yind(seq(iPair))})']);
-                    sig = p<params.thr;
+                sig = p<params.thr;
             else
-               [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+                [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
                     'data{iRow,yind(seq(iPair))},params.thr)']);
             end
             
             if ~isnan(sig) && sig
                 x1 = loc(iRow,xind(seq(iPair)));
                 x2 = loc(iRow,yind(seq(iPair)));
+                %                 plot([x1+hsp x2-hsp],...
+                %                     [mx+vsp*space(iPair) mx+vsp*space(iPair)],'k');
+                %                 text( roundall(mean([x1,x2]),0.001),...
+                %                     double(mx+vsp*space(iPair)+vsp/2),pval(p),...
+                %                     'FontSize',params.fontsize,'HorizontalAlignment',...
+                %                     'center','VerticalAlignment','cap')
+                sp = sp+sp_update;
                 plot([x1+hsp x2-hsp],...
-                    [mx+vsp*space(iPair) mx+vsp*space(iPair)],'k');
-                text( roundall(mean([x1,x2]),0.001),...
-                    double(mx+vsp*space(iPair)+vsp/2),pval(p),...
-                    'FontSize',params.fontsize,'HorizontalAlignment',...
-                    'center','VerticalAlignment','cap')
+                    [mx+sp mx+sp],'k');
+                %                 text( roundall(mean([x1,x2]),0.001),...
+                %                     double(mx+vsp*space(iPair)+vsp/2),pval(p),...
+                %                     'FontSize',params.fontsize,'HorizontalAlignment',...
+                %                     'center','VerticalAlignment','cap')
             end
         end
     end
     
-    set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+vsp*(nCols+1)])
+%     set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+vsp*(nCols+1)])
+    set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+sp])
+
 end
 
 set(gca,'Box','Off');

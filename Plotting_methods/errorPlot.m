@@ -14,24 +14,45 @@ params.FaceAlpha = .2;
 params.manual = [];
 params.linestyle = '-';
 params.linewidth = 1;
+params.average = 'nanmean';
+params.prc = .9;
 
 for i = 1:2:length(varargin)
     params.(varargin{i}) = varargin{i+1};
 end
 
 if isempty(params.manual)
+    if any(strcmp(params.average,{'nanmean','mean'}))
+        m = nanmean(traces,1);
+        cifun = @meanci;
+    elseif any(strcmp(params.average,{'nanmedian','median'}))
+        m = nanmedian(traces,1);
+        cifun = @medianci;
+    else
+        error('Unsupported averaging method');
+    end
+    
     if strcmpi(params.method,'std')
-        err = nanstd(traces);
+        errU = nanstd(traces);
+        errL = m - errU;
+        errU = m + errU;
     elseif strcmpi(params.method,'sem')
-        err = nanstd(traces)/sqrt(size(traces,1));
+        errU = nanstd(traces)/sqrt(size(traces,1));
+        errL = m - errU;
+        errU = m + errU;
+    elseif strcmpi(params.method,'ci')
+        errU = [];errL = [];
+        for y = 1:size(traces,2)
+            [errU(y), errL(y)] = cifun(traces(:,y),params.prc);
+        end
     else
         error('Unsupported method');
     end
 
-    m = nanmean(traces,1);
 else
     m = params.manual(1,:);
-    err = params.manual(2,:);
+    errU = params.manual(2,:);
+    errL = errU;
 end
 
 if isempty(times)
@@ -39,9 +60,9 @@ if isempty(times)
 end
 
 if strcmpi(params.barFunction,'patch')
-    h2 = patch([times fliplr(times)],[m-err, fliplr(m+err)],params.errorColor, 'FaceAlpha', params.FaceAlpha, 'EdgeColor', 'none');
+    h2 = patch([times fliplr(times)],[errL, fliplr(errU)],params.errorColor, 'FaceAlpha', params.FaceAlpha, 'EdgeColor', 'none');
 elseif strcmpi(params.barFunction,'area')
-    h2 = area([times fliplr(times)],[m-err, fliplr(m+err)],'FaceColor', params.errorColor, 'EdgeColor', 'none');
+    h2 = area([times fliplr(times)],[errL, fliplr(errU)],'FaceColor', params.errorColor, 'EdgeColor', 'none');
 else
     error('Unsupported error function');
 end

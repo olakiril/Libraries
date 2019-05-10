@@ -22,6 +22,7 @@ params.diagtype = '--';
 params.meantype = '-';
 params.constrict = []; % take a % of the data.
 params.heightgain = 2;
+params.offset = 0;
 params.figure = [];
 params.reduce = 1;
 params.ticks = [];
@@ -99,8 +100,8 @@ for igroup = 1:length(un_group)
         'MarkerEdgeColor','none','MarkerFaceColor',params.color(igroup,:),'MarkerFaceAlpha',params.MarkerFaceAlpha);
 end
 
-mn = min([A; B]); mx = max([A; B]);
-set(gca,'Xlim',[mn*params.reduce mx*params.reduce],'YLim',[mn*params.reduce mx*params.reduce]);
+mn = min([A; B]) - params.offset; mx = max([A; B])*params.reduce;
+set(gca,'Xlim',[mn mx],'YLim',[mn mx]);
 if params.ticks
     set(gca,'xtick',params.ticks,...
         'ytick',params.ticks);
@@ -110,7 +111,7 @@ set(h,'Position',[pos(1),pos(2),...
     (pos(3) + pos(4))/2, (pos(3) + pos(4))/2],'box','off',...
     'FontSize',params.fontsize); % equalize axis
 hold on
-plot([mn*params.reduce mx*params.reduce],[mn*params.reduce mx*params.reduce],...
+plot([mn mx],[mn mx],...
     params.diagtype,'Color',params.midlinecolor,'LineWidth',params.midlinewidth);
 axis square
 grid on
@@ -164,7 +165,12 @@ plot([barpos barpos],[offset offset+count],'color',[0 0 0])
 for igroup = 1:length(un_group)
     group_idx = Groups==un_group(igroup);
     mDif = nanmean(A(group_idx) - B(group_idx));
-    eval(['[t, p] = ' params.test '(A(group_idx) - B(group_idx),0,params.thr);']);
+    if strcmp(params.test,'signrank')
+        eval(['[p, t] = ' params.test '(A(group_idx) - B(group_idx),[],''alpha'',params.thr);']);
+        
+    else
+        eval(['[t, p] = ' params.test '(A(group_idx) - B(group_idx),0,params.thr);']);
+    end
     if  t == 1
         if p<=0.001; stars = '***'; elseif p <=0.01 && p>0.001;stars = '**'; else; stars = '*'; end
         set(gcf,'CurrentAxes',h(2))
