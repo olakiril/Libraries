@@ -1,5 +1,5 @@
-function cluster
-
+function clusterData
+% function cluster
 process = 4;
 
 for i = 1:process
