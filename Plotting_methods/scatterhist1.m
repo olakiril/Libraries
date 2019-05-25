@@ -7,7 +7,7 @@ function hOUT = scatterhist1(A,B,varargin)
 %
 % MF 2011-09-01
 
-% variable params
+%% variable params
 params.midlinecolor = [0.5 0.5 0.5];
 params.midlinewidth = 1;
 params.markersize = 20;
@@ -141,8 +141,8 @@ camorbit(45,0,'data',[0 0 1]);
 set(h(1),'position',[left_margin bottom_margin expansion expansion])
 pos = get(h(1),'position');
 w2 = 4 * max(abs(A - B)) * pos(3) / ((mx - mn) * 2);
-set(h(2),'Position',[pos(1) + pos(3) - w2/4,...
-    pos(2) + pos(4) - w2/4, w2/params.reduce, w2/params.reduce],...
+set(h(2),'Position',[pos(1) + pos(3) - w2/4*params.reduce^sqrt(2),...
+    pos(2) + pos(4) - w2/4*params.reduce^sqrt(2), w2, w2],...
     'YTick',round(max(cnt)/10)*10,'YTickLabel',[],'box','off','YAxisLocation','right',...
     'xtick',[],'ytick',[],'tickdir','out','xcolor',[1 1 1],'tickdir','in')
 
