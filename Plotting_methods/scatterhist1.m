@@ -28,6 +28,7 @@ params.reduce = 1;
 params.ticks = [];
 params.boxplot = false;
 params.MarkerFaceAlpha = 0.5;
+params.margin= 0.15;
 
 % hist params
 params.histcolor = [0.5 0.5 0.5];
@@ -63,8 +64,8 @@ if isempty(params.difcolor)  || size(params.difcolor,1)<length(un_group)
 end
 
 % non variable size params
-left_margin = 0.15;      % normalized left margin for scatter plot
-bottom_margin = 0.15;    % normalized bottom margin for scatter plot
+left_margin = params.margin;      % normalized left margin for scatter plot
+bottom_margin = params.margin;    % normalized bottom margin for scatter plot
 expansion = 0.5*(params.reduce^(1/3));         % normalized width and height of scatter plot
 
 % make sure vectors have the proper size and type

@@ -10,14 +10,14 @@ function hout = boxfun(data,varargin)
 
 params.thr = 0.05;
 params.fontsize = 12;
-params.markersize = 1;
+params.markersize = 5;
 params.names = [];
 params.angle = 45;
 params.sig = 1;
 params.error = 'sde';
 params.colors = [0.7 0.7 0.72];
 params.barwidth =0.9;
-params.test = 'anovan';
+params.test = 'kruskalwallis';
 params.range = 0.75;
 params.edgeColors = [];
 params.alpha = 0.7;
@@ -69,7 +69,7 @@ for k = 1:nRows
     for i = 1:nCols
         hold on
         if nCols==1; icolor=k;else;icolor=i;end
-        if params.rawback; plotrawdata; end
+%         if params.rawback; plotrawdata; end
         sz = size(params.barranges,1);
         a = sort(reshape(arrayfun(@(x) prctile(data{k,i},x),params.barranges),[],1));
         idx = sort([1 repmat(2:sz*2-1,1,2) length(a)]);
@@ -78,7 +78,7 @@ for k = 1:nRows
         b =[sort(repmat(2:sz,1,2),'desc') 1 1 sort(repmat(2:sz,1,2),'asce') ...
             sort(repmat(sz+1:sz*2-1,1,2),'asce') sz*2 sz*2  sort(repmat(sz+1:sz*2-1,1,2),'desc')];
         hand(i) = patch(spaces(b)+ loc(k,i),a(idx)',params.colors(icolor,:),'edgeColor',params.edgeColors(icolor,:),'facealpha',params.alpha);
-        if ~params.rawback; plotrawdata; end
+        if params.rawback; plotrawdata; end
         plot([-width width]/2+ loc(k,i),[values(k,i) values(k,i)],'color',params.colors(icolor,:)*0.75,'linewidth',params.linewidth)
     end
 end
@@ -93,6 +93,7 @@ if params.sig
     hsp = df*0.1;
     if nCols==1
         data = data';
+         loc = loc';
         [nRows, nCols] = size(data);
     end
     
@@ -101,7 +102,9 @@ if params.sig
 
 %         [~,seq] = sort(pdist(reshape(loc(iRow,:),[],1)));
             seq = nchoosek(size(loc,2),2):-1:1;
+           
         if nCols>2
+%             seq = nchoosek(nCols,2):-1:1;
             idx =squareform(1:length(seq));
             idx(logical(tril(ones(nCols),-1))) = 0;
             [xind, yind]= find(idx);

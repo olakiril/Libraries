@@ -90,6 +90,7 @@ else
 end
 
 mx = max((values(:)) + errorsU(:));
+mn = 0;
 sp_update =  max(abs((values(:)) + errorsU(:)))*0.01;
 if params.bar;mx = max([0 mx]);end
 vsp = ( max(abs(values(:)) + errorsU(:)))*0.1;
@@ -184,7 +185,7 @@ if params.sig
     end
     
 %     set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+vsp*(nCols+1)])
-    set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+sp])
+    set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+2*sp])
 
 end
 
