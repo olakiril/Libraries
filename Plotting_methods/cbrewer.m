@@ -49,34 +49,12 @@ end
 
 % If no arguments
 if (~exist('ctype', 'var') || ~exist('cname', 'var') || ~exist('ncol', 'var'))
-    disp(' ')
-    disp('INPUT:')
-    disp('  - ctype: type of color table *seq* (sequential), *div* (divergent), *qual* (qualitative)')
-    disp('  - cname: name of colortable. It changes depending on ctype.')
-    disp('  - ncol:  number of color in the table. It changes according to ctype and cname')
-    
-    disp(' ')
-    disp('Sequential tables:')
-    z={'Blues','BuGn','BuPu','GnBu','Greens','Greys','Oranges','OrRd','PuBu','PuBuGn','PuRd',...
-             'Purples','RdPu', 'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd'};
-    z(:)     
-         
-    disp('Divergent tables:')
-    z={'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn'};
-    z(:) 
-    
-    disp(' ')
-    disp('Qualitative tables:')
-    %getfield(colorbrewer, 'qual')
-    z={'Accent', 'Dark2', 'Paired', 'Pastel1', 'Pastel2', 'Set1', 'Set2', 'Set3'};
-    z(:)
-
     plot_brewer_cmap
     return
 end
 
 % Verify that the input is appropriate
-ctype_names={'div', 'seq', 'qual'};
+ctype_names=fieldnames(colorbrewer);
 if (~ismember(ctype,ctype_names))
     disp('ctype must be either: *div*, *seq* or *qual*')
     colormap=[];

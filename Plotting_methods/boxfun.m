@@ -10,14 +10,14 @@ function hout = boxfun(data,varargin)
 
 params.thr = 0.05;
 params.fontsize = 12;
-params.markersize = 1;
+params.markersize = 5;
 params.names = [];
 params.angle = 45;
 params.sig = 1;
 params.error = 'sde';
 params.colors = [0.7 0.7 0.72];
 params.barwidth =0.9;
-params.test = 'anovan';
+params.test = 'kruskalwallis';
 params.range = 0.75;
 params.edgeColors = [];
 params.alpha = 0.7;
@@ -69,7 +69,7 @@ for k = 1:nRows
     for i = 1:nCols
         hold on
         if nCols==1; icolor=k;else;icolor=i;end
-        if params.rawback; plotrawdata; end
+%         if params.rawback; plotrawdata; end
         sz = size(params.barranges,1);
         a = sort(reshape(arrayfun(@(x) prctile(data{k,i},x),params.barranges),[],1));
         idx = sort([1 repmat(2:sz*2-1,1,2) length(a)]);
@@ -78,7 +78,7 @@ for k = 1:nRows
         b =[sort(repmat(2:sz,1,2),'desc') 1 1 sort(repmat(2:sz,1,2),'asce') ...
             sort(repmat(sz+1:sz*2-1,1,2),'asce') sz*2 sz*2  sort(repmat(sz+1:sz*2-1,1,2),'desc')];
         hand(i) = patch(spaces(b)+ loc(k,i),a(idx)',params.colors(icolor,:),'edgeColor',params.edgeColors(icolor,:),'facealpha',params.alpha);
-        if ~params.rawback; plotrawdata; end
+        if params.rawback; plotrawdata; end
         plot([-width width]/2+ loc(k,i),[values(k,i) values(k,i)],'color',params.colors(icolor,:)*0.75,'linewidth',params.linewidth)
     end
 end
@@ -86,61 +86,119 @@ end
 mx = max(reshape(cellfun(@(x) prctile(x,99),data),[],1));
 mn = min(reshape(cellfun(@(x) prctile(x,1),data),[],1));
 vsp = [mx-mn]*0.05;
-
+ sp_update = range(reshape(cellfun(@max,data),[],1))*0.01;
+% sp_update =  max(abs((data(:))))*0.01;
 if params.sig
     df =  mean(mean(diff(loc')));
     hsp = df*0.1;
     if nCols==1
         data = data';
+         loc = loc';
         [nRows, nCols] = size(data);
     end
     
     for iRow = 1:nRows
-        [~,seq] = sort(pdist(reshape(loc(iRow,:),[],1)));
-        
+        mx = max(reshape(cellfun(@(x) prctile(x,99),data(iRow,:)),[],1));
+
+%         [~,seq] = sort(pdist(reshape(loc(iRow,:),[],1)));
+            seq = nchoosek(size(loc,2),2):-1:1;
+           
         if nCols>2
+%             seq = nchoosek(nCols,2):-1:1;
             idx =squareform(1:length(seq));
             idx(logical(tril(ones(nCols),-1))) = 0;
             [xind, yind]= find(idx);
+            [~,sort_idx] = sort(min([xind yind],[],2));
+            xind = xind(sort_idx);
+            yind = yind(sort_idx);
         else xind = 1;yind =2;
         end
         
         % correct error distances
-        x1 = loc(xind(seq));
-        x2 = loc(yind(seq));
-        xd = loc(yind(seq)) - loc(xind(seq));
-        uni = unique(xd);
-        space = xd;
+%         x1 = loc(xind(seq));
+%         x2 = loc(yind(seq));
+%         xd = loc(yind(seq)) - loc(xind(seq));
+%         uni = unique(xd);
+%         space = xd;
+%       
+%         % plot the erros if significant
+%         if any(strcmp(params.test,{'anovan','kruskalwallis'}))
+%              C = [];
+%             Dat = data(iRow,:);
+%             for idata = 1:length(Dat); C = [C;ones(length(Dat{idata}),1)*idata];end
+%             if strcmp(params.test,'anovan')
+%                 [~,~,stats] = anovan(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'Display','off');
+%             elseif strcmp(params.test,'kruskalwallis')
+%                 [~,~,stats] = kruskalwallis(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'off');
+%             end
+%             stat = multcompare(stats,'display','off');
+%         end
+%         
+%         for iPair = 1:length(seq)
+%             any(strcmp(params.test,{'anovan','kruskalwallis'}))
+%             if ~strcmp(params.test,'anovan')
+%                 [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+%                     'data{iRow,yind(seq(iPair))},params.thr)']);
+%             else
+%                 p = stat(stat(:,1)==xind(seq(iPair)) & stat(:,2)==yind(seq(iPair)),6);
+%                 sig = p<params.thr;
+%             end
+%             
+%             if ~isnan(sig) && sig
+%                 x1 = loc(iRow,xind(seq(iPair)));
+%                 x2 = loc(iRow,yind(seq(iPair)));
+%                 plot([x1+hsp x2-hsp],...
+%                     [mx+vsp*space(iPair) mx+vsp*space(iPair)],'k');
+%                 text( roundall(mean([x1,x2]),0.001),...
+%                     double(mx+vsp*space(iPair)+vsp/2),pval(p),...
+%                     'FontSize',params.fontsize,'HorizontalAlignment',...
+%                     'center','VerticalAlignment','cap')
+%             end
+%         end
+%         
         
-        % plot the erros if significant
-        if strcmp(params.test,'anovan')
+        if any(strcmp(params.test,{'anovan','kruskalwallis'}))
             C = [];
             Dat = data(iRow,:);
             for idata = 1:length(Dat); C = [C;ones(length(Dat{idata}),1)*idata];end
-            [~,~,stats] = anovan(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'Display','off');
+            if strcmp(params.test,'anovan')
+                [~,~,stats] = anovan(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'Display','off');
+            elseif strcmp(params.test,'kruskalwallis')
+                [~,~,stats] = kruskalwallis(cell2mat(cellfun(@(x) x(:),Dat(:),'uni',0)),C,'off');
+            end
             stat = multcompare(stats,'display','off');
         end
         
+        sp = sp_update;
         for iPair = 1:length(seq)
-            if ~strcmp(params.test,'anovan')
-                [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
-                    'data{iRow,yind(seq(iPair))},params.thr)']);
-            else
+            if any(strcmp(params.test,{'anovan','kruskalwallis'}))
                 p = stat(stat(:,1)==xind(seq(iPair)) & stat(:,2)==yind(seq(iPair)),6);
                 sig = p<params.thr;
+            elseif any(strcmp(params.test,{'ranksum','signrank'}))
+                p = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+                    'data{iRow,yind(seq(iPair))})']);
+                sig = p<params.thr;
+            else
+                [sig, p] = eval([params.test '(data{iRow,xind(seq(iPair))},' ...
+                    'data{iRow,yind(seq(iPair))},params.thr)']);
+            end
+            
+            if iPair >1 && xind(seq(iPair))~=xind(seq(iPair-1))
+                  sp = sp+sp_update;
             end
             
             if ~isnan(sig) && sig
                 x1 = loc(iRow,xind(seq(iPair)));
                 x2 = loc(iRow,yind(seq(iPair)));
+
+                sp = sp+sp_update;
                 plot([x1+hsp x2-hsp],...
-                    [mx+vsp*space(iPair) mx+vsp*space(iPair)],'k');
-                text( roundall(mean([x1,x2]),0.001),...
-                    double(mx+vsp*space(iPair)+vsp/2),pval(p),...
-                    'FontSize',params.fontsize,'HorizontalAlignment',...
-                    'center','VerticalAlignment','cap')
+                    [mx+sp mx+sp],'k');
             end
         end
+        
+        
+        
     end
 end
 
