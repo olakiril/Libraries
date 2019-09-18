@@ -89,7 +89,7 @@ function[h,L,MX,MED,bw]=violin(Y,varargin)
 %_____________________
 xL=[];
 fc=[1 0.5 0];
-lc='k';
+lc=[];
 alp=0.5;
 mc='k';
 medc='r';
@@ -102,7 +102,8 @@ x = [];
 
 %convert single columns to cells:
 if iscell(Y)==0
-    Y = num2cell(Y,1);
+    Y = cell2mat(cellfun(@(x) [x(:); nan(max(cellfun(@length,Y)) - length(x),1)],Y,'uni',0));
+%     Y = num2cell(Y,1);
 end
 
 %get additional input parameters (varargin)

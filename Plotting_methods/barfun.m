@@ -20,11 +20,17 @@ params.colors = [0.7 0.7 0.72];
 params.barwidth = 0.9;
 params.test = 'anovan';
 params.range = 0.9;
-params.edgeColors = [];
 params.average = 'nanmean';
 params.alpha = 1;
 params.prc = 0.9;
-
+params.capsize = 1;
+params.markersize = 2;
+params.rawback = 0;
+params.markeralpha = 0.4;
+params.isoutlier = 1;
+params.rawrange = 0.6;
+params.markercolor = [0.6 0.6 0.6]; 
+    
 params = getParams(params,varargin);
 
 % convert data to columns
@@ -33,6 +39,7 @@ data = cellfun(@(x) x(:),data,'uni',0);
 if nCols == 1 || nRows ==1
     data = reshape(data,length(data),1);
 end
+disp_dat = [];
 
 % data = data';
 values = eval(sprintf('cellfun(@%s,data)',params.average));
@@ -57,21 +64,29 @@ width = params.barwidth/nCols;
 loc = bsxfun(@plus,repmat(linspace(1-params.range/2 + width/2,1+params.range/2 -width/2,nCols),nRows,1),(1:nRows)'-1);
 
 ncolors = nCols;if nCols==1;ncolors=nRows;end
-if isempty(params.colors) || size(params.colors,1)<ncolors
+if iscell(params.colors)
+    assert(all(size(params.colors),size(values)))
+elseif isempty(params.colors) || size(params.colors,1)<ncolors
     params.colors = cbrewer('qual','Pastel1',max([ncolors,3]));
 end
-if isempty(params.edgeColors)
-    params.edgeColors = repmat('none',ncolors,1);
-end
 
+        hold on
 for i = 1:nCols
     for k = 1:nRows
+           if params.rawback; plotrawdata; end
         if nCols==1; icolor=k;else;icolor=i;end
+        color = params.colors(icolor,:);
+        if  size(params.colors,1)>ncolors
+          color = hsv2rgb(rgb2hsv(color).*[1 i/nCols 1]);
+        end
+    
         handles.bar(i,k) = bar(loc(k,i),values(k,i),'barwidth',width,...
-            'faceColor',params.colors(icolor,:),'edgeColor',params.edgeColors(icolor,:),...
+            'faceColor',color,'edgeColor','none',...
             'LineStyle','none','FaceAlpha',params.alpha); % standard implementation of bar fn
-        hold on
+
         handles.bar(i,k).BaseLine.LineStyle = 'none';
+%         if params.rawback; plotrawdata; end
+
     end
 end
 
@@ -82,7 +97,7 @@ if nRows > 1
         %         loc(:,col) = mean(get(get(handles.bar(col),'children'),'xdata'),1);
         % Use the mean x values to call the standard errorbar fn; the
         % errorbars will now be centred on each bar:
-        errorbar(loc(:,col),values(:,col),errorsL(:,col),errorsU(:,col),'linestyle','none','color',[0.3 0.3 0.3],'CapSize',2)
+        errorbar(loc(:,col),values(:,col),errorsL(:,col),errorsU(:,col),'linestyle','none','color',[0.3 0.3 0.3],'CapSize',params.capsize)
     end
 else
     %     loc = mean(get(get(handles.bar,'children'),'xdata'),1);
@@ -167,26 +182,30 @@ if params.sig
             if ~isnan(sig) && sig
                 x1 = loc(iRow,xind(seq(iPair)));
                 x2 = loc(iRow,yind(seq(iPair)));
-                %                 plot([x1+hsp x2-hsp],...
-                %                     [mx+vsp*space(iPair) mx+vsp*space(iPair)],'k');
-                %                 text( roundall(mean([x1,x2]),0.001),...
-                %                     double(mx+vsp*space(iPair)+vsp/2),pval(p),...
-                %                     'FontSize',params.fontsize,'HorizontalAlignment',...
-                %                     'center','VerticalAlignment','cap')
+%                                 plot([x1+hsp x2-hsp],...
+%                                     [mx+vsp*space(iPair) mx+vsp*space(iPair)],'k');
+                                text( roundall(mean([x1,x2]),0.001),...
+                                    double(mx+vsp*space(iPair)+vsp/2),pval(p),...
+                                    'FontSize',params.fontsize,'HorizontalAlignment',...
+                                    'center','VerticalAlignment','cap')
                 sp = sp+sp_update;
                 plot([x1+hsp x2-hsp],...
                     [mx+sp mx+sp],'k');
-                %                 text( roundall(mean([x1,x2]),0.001),...
-                %                     double(mx+vsp*space(iPair)+vsp/2),pval(p),...
-                %                     'FontSize',params.fontsize,'HorizontalAlignment',...
-                %                     'center','VerticalAlignment','cap')
+%                                 text( roundall(mean([x1,x2]),0.001),...
+%                                     double(mx+vsp*space(iPair)+vsp/2),pval(p),...
+%                                     'FontSize',params.fontsize,'HorizontalAlignment',...
+%                                     'center','VerticalAlignment','cap')
             end
         end
     end
     
 %     set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+vsp*(nCols+1)])
-    set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+2*sp])
+%     set(gca,'ylim',[min([0 min(values(:) - 2*errorsU(:))]) mx+2*sp])
 
+end
+
+if params.rawback
+        set(gca,'ylim',[min([0 min(min(cellfun(@(x) nanmin(x(:)),disp_dat)))]) max(max(cellfun(@(x) nanmax(x(:)),disp_dat)))])
 end
 
 set(gca,'Box','Off');
@@ -219,5 +238,20 @@ elseif p<0.01
     ast = '**';
 else ast = '*';
 end
+end
 
+function plotrawdata
+    offset = invprctile(data{k,i},data{k,i})/100;
+    offset = 1 - abs(offset - 0.5)/0.5;
+    disp_dat{k,i}  = data{k,i};
+    if params.isoutlier
+        disp_dat{k,i} = disp_dat{k,i}(~isoutlier(disp_dat{k,i}));
+    end
+    p = scatter(min(width*params.rawrange/2,max(-width*params.rawrange/2,...
+        normrnd(0,0.2,length(disp_dat{k,i}),1)*width*params.rawrange))+ loc(k,i),disp_dat{k,i},params.markersize,...
+        'MarkerFaceColor',params.markercolor,'markeredgecolor','none');
+    p.MarkerFaceAlpha = params.markeralpha;
 
+end
+
+end

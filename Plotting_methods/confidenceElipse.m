@@ -2,6 +2,8 @@ function confidenceElipse(data,varargin)
 
 params.color = [1 0 0];
 params.confidence = 0.8;
+params.linewidth = 1;
+params.linestyle = '-';
 
 params = getParams(params,varargin);
 
@@ -58,7 +60,7 @@ r_ellipse = [ellipse_x_r;ellipse_y_r]' * R;
 
 % Draw the error ellipse
 hold on;
-plot(r_ellipse(:,1) + X0,r_ellipse(:,2) + Y0,'-','color',params.color)
+plot(r_ellipse(:,1) + X0,r_ellipse(:,2) + Y0,params.linestyle,'color',params.color,'linewidth',params.linewidth)
 
 % 
 % % Plot the original data

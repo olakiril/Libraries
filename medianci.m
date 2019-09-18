@@ -1,9 +1,10 @@
-function [u, l] = medianci(s,p,singlethread)
+function [u, l, m] = medianci(s,p,singlethread)
 
 if nargin<3
     singlethread = false;
 end
 
+m = median(s);
 p = (1-p)/2;
 u = zeros(size(s,2));
 l = u;
