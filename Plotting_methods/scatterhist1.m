@@ -79,6 +79,7 @@ if params.constrict
     i = A < uth & A > lth & B < uth & B > lth;
     A = A(i);
     B = B(i);
+    Groups = Groups(i);
 end
 
 % create figure
