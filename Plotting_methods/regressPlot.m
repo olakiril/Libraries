@@ -16,19 +16,20 @@ params.fontsize = 9;
 params.extrabars = []; % [means ;ers]
 params.color = [0 0 0];
 params.title = '';
-params.subplot = 0;
+params.boxplot = 0;
 params.MarkerSize = 2;
 params.MarkerType = 'O';
-params.MarkerEdgeColor = [0.5 0.5 0.5];
+params.MarkerEdgeColor = 'none';
 params.MarkerFaceColor = [0.5 0.5 0.5];
 params.figure = [];
 params.textcolor = [0 0 0];
 params.linecolor = [0 0 0];
 params.stat2title = 0;
-params.linewidth = 2;
+params.linewidth = 1;
 params.method = 'regress';
 params.globalcolor = [];
 params.linetype = '-';
+params.boxcolor = [0.5 0.5 1];
 
 params = getParams(params,varargin);
 
@@ -37,11 +38,12 @@ if ~isempty(params.globalcolor)
     params.color = params.globalcolor;
     params.MarkerEdgeColor = params.globalcolor;
     params.MarkerFaceColor = params.globalcolor;
-    params.textcolor = params.globalcolor*0.5;
-    params.linecolor = params.globalcolor*0.5;
+    params.textcolor = hsv2rgb(rgb2hsv(params.globalcolor).*[1 0.8 0.7]);
+    params.linecolor = hsv2rgb(rgb2hsv(params.globalcolor).*[1 0.8 0.7]);
+    params.boxcolor = params.globalcolor;
 end
 
-if ~params.subplot && params.plot && isempty(params.figure)
+if params.plot && isempty(params.figure)
     fh = figure;
     if iscell(params.title)
         set(fh,'Name',cell2mat(reshape(params.title,1,[])))
@@ -81,9 +83,7 @@ else
 end
 
 if params.plot
-    if params.barplot
-        subplot(211)
-    end
+   
     plot(b,a,params.MarkerType,'MarkerSize',params.MarkerSize,...
         'Color',params.color,'markeredgecolor',params.MarkerEdgeColor,...
         'markerFacecolor',params.MarkerFaceColor);
@@ -114,9 +114,9 @@ if params.plot
         set(gca,'XLim',[0 maxV])
         set(gca,'YLim',[0 maxV])
         axis square
-    else
-        xlim([nanmin(b)-nanstd(b) nanmax(b)+nanstd(b)]);
-        ylim([nanmin(a)-nanstd(a) nanmax(a)+nanstd(a)]);
+%     else
+%         xlim([nanmin(b)-nanstd(b) nanmax(b)+nanstd(b)]);
+%         ylim([nanmin(a)-nanstd(a) nanmax(a)+nanstd(a)]);
     end
     set(gca,'FontSize',params.fontsize)
     set (gcf,'Color',[ 1 1 1])
@@ -140,41 +140,25 @@ if params.plot
         pos = get(xlabh,'Position');
         set(xlabh,'Position',[pos(1)*1.1 pos(2) pos(3)])
     end
-    if params.barplot
-        eb = params.extrabars;
-        pos = get(gca,'Position');
-        m1 = nanmean(b);
-        m2 = nanmean(a);
-        er1 = nanstd(b)/sqrt(length(b));
-        er2 = nanstd(a)/sqrt(length(a));
-        subplot(212)
-        if ~isempty(eb)
-            
-            bar([m1 m2 eb(1,:)], 0.6,'edgecolor','k', 'linewidth', 1);
-        else
-            bar([m1 m2], 0.6,'edgecolor','k', 'linewidth', 1);
-        end
-        ah(2) = gca;
-        
-        
+  
+    if params.boxplot
+        x_lim = get(gca,'xlim');
+         y_lim = get(gca,'ylim');
+         xticks = get(gca,'xtick');
+         yticks = get(gca,'ytick');
+          xticklabels = get(gca,'xticklabel');
+         yticklabels = get(gca,'yticklabel');
+
         hold on
-        if ~isempty(eb)
-            errorbar(1:2+size(eb,2), [m1 m2 eb(1,:)],[er1 er2 eb(2,:)], 'k', 'linestyle', 'none', 'linewidth', 2);
-        else
-            errorbar(1:2, [m1 m2],[er1 er2], 'k', 'linestyle', 'none', 'linewidth', 2);
-        end
-        [s, p] = ttest(b,a,params.thr);
-        if s == 1 && p < params.thr
-            plot([1 1 2 2],[m1 + 2*er1, nanmax([m2 m1])+4*nanmax([er1 er2]),nanmax([m2 m1])+4*nanmax([er1 er2]),m2 + 2*er2],'k');
-            text(1.2, double(nanmax([m2 m1])+nanmax([m2 m1])*0.01),['p < ' num2str(params.thr)],'FontSize',params.fontsize)
-        end
-        set(gca,'Box','Off');
-        if isempty(params.figure)
-            set(gca,'Position',[pos(1)*4.5 pos(2)*1.35 pos(3)*0.35 pos(4)*0.3])
-            set(gcf,'Position',[440        -265         552        1090])
-        end
-        xticklabel_rotate([],270,params.names);
-        set(gca,'FontSize',params.fontsize);
+        boxplot(a,'positions',diff(x_lim)*0.04+x_lim(1),'plotstyle','compact',...
+            'medianstyle','target','labels',{''},'jitter',0,'colors',params.boxcolor)
+        hold on
+        boxplot(b,'positions',diff(y_lim)*0.04+y_lim(1),'plotstyle','compact',...
+            'orientation','horizontal','medianstyle','target','labels',{''},'jitter',0,'colors',params.boxcolor)
+        xlim(x_lim)
+        ylim(y_lim)
+        set(gca,'xtick',xticks,'ytick',yticks,'xticklabel',xticklabels,'yticklabel',yticklabels)
+        grid on
     end
 else
     [~,p] = ttest(b,a,params.thr);
