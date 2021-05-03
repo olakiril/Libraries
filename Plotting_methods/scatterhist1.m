@@ -11,7 +11,7 @@ function hOUT = scatterhist1(A,B,varargin)
 params.midlinecolor = [0.5 0.5 0.5];
 params.midlinewidth = 1;
 params.markersize = 20;
-params.markertype = 'O';
+params.markertype = {'O'};
 params.MarkerEdgeColor = 'none';
 params.color = [0.2 0.2 0.2];
 params.names = [{''},{''}];
@@ -29,6 +29,7 @@ params.ticks = [];
 params.boxplot = false;
 params.MarkerFaceAlpha = 0.5;
 params.margin= 0.15;
+params.collapse_groups = 0;
 
 % hist params
 params.histcolor = [0.5 0.5 0.5];
@@ -98,8 +99,8 @@ h = subplot(223);
 hold on
 for igroup = 1:length(un_group)
     group_idx = Groups==un_group(igroup);
-    scatter(A(group_idx),B(group_idx),'filled',params.markertype,'SizeData',params.markersize,...
-        'MarkerEdgeColor','none','MarkerFaceColor',params.color(igroup,:),'MarkerFaceAlpha',params.MarkerFaceAlpha);
+    scatter(A(group_idx),B(group_idx),'filled',params.markertype{un_group(igroup)},'SizeData',params.markersize(un_group(igroup)),...
+        'MarkerEdgeColor','none','MarkerFaceColor',params.color(un_group(igroup),:),'MarkerFaceAlpha',params.MarkerFaceAlpha);
 end
 
 mn = min([A; B]) - params.offset; mx = max([A; B])*params.reduce;
@@ -118,6 +119,11 @@ plot([mn mx],[mn mx],...
 axis square
 grid on
 
+if params.collapse_groups
+    un_group = 1;
+    Groups = ones(size(Groups));
+end
+
 %% histogram
 h(2) = subplot(222);
 hold on
@@ -127,7 +133,7 @@ cnt = [];
 for igroup = 1:length(un_group)
     group_idx = Groups==un_group(igroup);
     hh = histogram(A(group_idx) - B(group_idx),bin);
-    set(hh,'FaceColor',params.histcolor(igroup,:),'EdgeColor',params.histedgecolor)
+    set(hh,'FaceColor',params.histcolor(un_group(igroup),:),'EdgeColor',params.histedgecolor)
     cnt{igroup} = hh.Values;
 end
 cnt = [cnt{:}];
@@ -152,7 +158,7 @@ hold on;
 for igroup = 1:length(un_group)
     group_idx = Groups==un_group(igroup);
     plot([1 1]*nanmean(A(group_idx) - B(group_idx)),[0 max(cnt) * 1.2],params.meantype,...
-        'LineWidth',params.midlinewidth,'color',params.difcolor(igroup,:)) % mean diff line
+        'LineWidth',params.midlinewidth,'color',params.difcolor(un_group(igroup),:)) % mean diff line
 end
 axis off
 count = ceil(max(cnt)/2);
