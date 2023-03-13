@@ -33,6 +33,9 @@ for ifig = 1:length(figH)
     name(strfind(name,'"')) = '';
 
     set(figH(ifig),'PaperPositionMode','auto')
+    
+    pos = get(figH(ifig),'position');
+    if pos(3)>pos(4); set(figH(ifig),'PaperOrientation','landscape');end
 
     if iscell(type)
         for itype = 1:length(type)

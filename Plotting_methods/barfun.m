@@ -10,24 +10,23 @@ function [hout,values,errorsL,errorsU]= barfun(data,varargin)
 
 params.thr = 0.05;
 params.fontsize = 12;
-params.markersize = 0.5;
+params.markersize = 2;
 params.names = [];
 params.angle = 45;
 params.sig = 1;
 params.bar = 1;
 params.error = 'sde';
 params.colors = [0.7 0.7 0.72];
-params.barwidth = 0.9;
+params.barwidth = 0.8;
 params.test = 'anovan';
 params.range = 0.9;
 params.average = 'nanmean';
 params.alpha = 1;
 params.prc = 0.9;
-params.capsize = 1;
-params.markersize = 2;
+params.capsize = .1;
 params.rawback = 0;
 params.markeralpha = 0.4;
-params.isoutlier = 1;
+params.outliers = 0;
 params.rawrange = 0.6;
 params.markercolor = [0.6 0.6 0.6]; 
     
@@ -244,8 +243,8 @@ function plotrawdata
     offset = invprctile(data{k,i},data{k,i})/100;
     offset = 1 - abs(offset - 0.5)/0.5;
     disp_dat{k,i}  = data{k,i};
-    if params.isoutlier
-        disp_dat{k,i} = disp_dat{k,i}(~isoutlier(disp_dat{k,i}));
+    if params.outliers
+        disp_dat{k,i} = disp_dat{k,i}(~isoutlier(disp_dat{k,i},'percentiles',params.outliers));
     end
     p = scatter(min(width*params.rawrange/2,max(-width*params.rawrange/2,...
         normrnd(0,0.2,length(disp_dat{k,i}),1)*width*params.rawrange))+ loc(k,i),disp_dat{k,i},params.markersize,...

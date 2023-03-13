@@ -99,8 +99,12 @@ h = subplot(223);
 hold on
 for igroup = 1:length(un_group)
     group_idx = Groups==un_group(igroup);
-    scatter(A(group_idx),B(group_idx),'filled',params.markertype{un_group(igroup)},'SizeData',params.markersize(un_group(igroup)),...
-        'MarkerEdgeColor','none','MarkerFaceColor',params.color(un_group(igroup),:),'MarkerFaceAlpha',params.MarkerFaceAlpha);
+%     scatter(A(group_idx),B(group_idx),'filled',params.markertype{un_group(igroup)},'SizeData',params.markersize(un_group(igroup)),...
+%         'MarkerEdgeColor','none','MarkerFaceColor',params.color(un_group(igroup),:),'MarkerFaceAlpha',params.MarkerFaceAlpha);
+    
+    scatter(A(group_idx),B(group_idx),[],params.color,'filled',params.markertype{un_group(igroup)},'SizeData',params.markersize(un_group(igroup)),...
+    'MarkerEdgeColor','none','MarkerFaceAlpha',params.MarkerFaceAlpha);
+    
 end
 
 mn = min([A; B]) - params.offset; mx = max([A; B])*params.reduce;
